@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #f0f0f0;
+  --card: #141414;
+  --card-elevated: #1a1a1a;
+  --border: #2a2a2a;
+  --muted: #9ca3af;
+  --besharpx-amber: #fbbf24;
+  --besharpx-amber-hover: #f59e0b;
+  --besharpx-primary: #2563eb;
+  --besharpx-glow: rgba(251, 191, 36, 0.1);
+  --besharpx-blue-glow: rgba(37, 99, 235, 0.08);
+  --app-header-h: 3.5625rem;
+  --app-main-py: 1rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .text-gradient-brand {
+    background: linear-gradient(135deg, var(--besharpx-amber) 0%, #fde68a 50%, var(--besharpx-primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .mesh-landing {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, var(--besharpx-blue-glow), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, var(--besharpx-glow), transparent);
+  }
+
+  .card-glass {
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .card-executive {
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .btn-amber {
+    background: var(--besharpx-amber);
+    color: #171717;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-amber:hover {
+    background: var(--besharpx-amber-hover);
+  }
+
+  .btn-outline-amber {
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: var(--besharpx-amber);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-outline-amber:hover {
+    background: var(--besharpx-glow);
+    border-color: rgba(251, 191, 36, 0.6);
+  }
+}

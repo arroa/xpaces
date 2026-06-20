@@ -1,0 +1,46 @@
+---
+description: Confirmaciones destructivas con modal propio — nunca window.confirm
+alwaysApply: true
+---
+
+# Confirmaciones destructivas
+
+Acciones irreversibles (eliminar, revocar, etc.) **nunca** usan `window.confirm` ni `alert`.
+
+## Estándar obligatorio
+
+Usar `useConfirm()` del `ConfirmProvider`:
+
+```tsx
+const confirm = useConfirm();
+
+async function handleDelete() {
+  const accepted = await confirm({
+    message: `¿Eliminar la planta "${name}"?`,
+  });
+  if (!accepted) return;
+  // ejecutar acción
+}
+```
+
+El modal incluye:
+
+- Mensaje claro
+- **Aplicar** (acción) y **Cancelar**
+- Cierre con **Esc**, click fuera o **✕**
+
+## Implementación
+
+- UI: `src/components/confirm-dialog.tsx`
+- Hook: `useConfirm()` en `src/components/confirm-provider.tsx`
+- Provider global: `AppProviders` en el layout principal
+
+## Prohibido
+
+```tsx
+// ❌ MAL
+if (!window.confirm("¿Eliminar?")) return;
+
+// ✅ BIEN
+if (!(await confirm({ message: "¿Eliminar?" }))) return;
+```

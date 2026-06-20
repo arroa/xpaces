@@ -1,0 +1,36 @@
+---
+description: Skeleton al cargar pantallas y capa de carga en acciones async
+alwaysApply: true
+---
+
+# Estados de carga (Xpaces)
+
+## Skeleton — carga inicial de pantalla
+
+Al entrar a una vista que trae datos, mostrar **skeleton** (no texto "Cargando…").
+
+- Componente base: `src/components/ui/skeleton.tsx`
+- Usar `loading.tsx` en rutas App Router cuando aplique
+- El cliente puede reutilizar el mismo skeleton mientras hace fetch
+
+## Capa de carga — acciones del usuario
+
+Toda acción async relevante (guardar, crear, eliminar, subir) muestra **`LoadingOverlay`** hasta terminar.
+
+```tsx
+<LoadingOverlay visible={busy} message="Guardando organización…" />
+```
+
+- Componente: `src/components/loading-overlay.tsx`
+- Bloquea interacción, spinner ámbar, mensaje claro
+- Prohibido dejar acciones largas sin feedback visual
+
+## Prohibido
+
+```tsx
+// ❌ Solo texto
+{loading && <p>Cargando…</p>}
+
+// ❌ Botón sin overlay en operación lenta
+await fetch(...); // sin LoadingOverlay
+```

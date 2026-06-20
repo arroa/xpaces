@@ -1,0 +1,52 @@
+---
+description: Xpaces es monolítico — solo Next.js App Router y Route Handlers, sin backend separado
+alwaysApply: true
+---
+
+# Arquitectura monolítica (Xpaces)
+
+Xpaces es una aplicación **monolítica en Next.js**. Toda la lógica vive en un solo repo y un solo deploy.
+
+## Qué usar
+
+- **UI**: `src/app/**/page.tsx`, layouts, componentes en `src/components/`
+- **API**: Route Handlers en `src/app/api/**/route.ts`
+- **Datos**: Mongoose + MongoDB (`src/models/`, `src/lib/mongodb.ts`)
+- **Auth**: Clerk + sesión propia (`src/middleware.ts`, `src/lib/xpaces-user.ts`)
+- **Utilidades compartidas**: `src/lib/`
+
+## Qué NO usar
+
+- Servidor Express, Fastify, Nest ni API REST aparte
+- Microservicios o repos backend separados
+- BFF externo que duplique endpoints ya cubiertos por `/api/*`
+
+## Al agregar funcionalidad
+
+1. ¿Es pantalla? → página o componente cliente bajo `src/app/` o `src/components/`
+2. ¿Es persistencia o regla de negocio? → `route.ts` en `src/app/api/` + helper en `src/lib/`
+3. ¿Es acceso desde el cliente? → `fetch("/api/...")` contra Route Handlers del mismo proyecto
+
+## Ejemplos
+
+```typescript
+// ✅ BIEN — endpoint en el monolito
+// src/app/api/buildings/route.ts
+export async function GET(request: Request) { ... }
+
+// ❌ MAL — backend separado
+// server/index.ts con express.get("/buildings", ...)
+```
+
+```typescript
+// ✅ BIEN — cliente llama al monolito
+await fetch("/api/organizations", { method: "POST", ... });
+
+// ❌ MAL — URL de API externa propia
+await fetch("http://localhost:4000/organizations", ...);
+```
+
+## Excepciones permitidas (servicios externos, no backend propio)
+
+- **Clerk** (identidad), **Cloudinary** (imágenes), **MongoDB** (base de datos)
+- Estos son dependencias externas; la orquestación sigue en Route Handlers de Next.js
