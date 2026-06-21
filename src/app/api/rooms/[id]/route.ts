@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireApiOrgMemberWrite } from "@/lib/org-access";
 import { serializeRoom } from "@/lib/seat-assignment";
 import { connectMongo } from "@/lib/mongodb";
+import { FloorModel } from "@/models/floor";
 import { RoomModel } from "@/models/room";
 
 const positionSchema = z
@@ -50,6 +51,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     } else {
       room.position = { x: parsed.data.position.x, y: parsed.data.position.y };
     }
+    await FloorModel.updateOne({ _id: room.floorId }, { layoutPositionSpace: "image" });
   }
 
   if (parsed.data.capacidad !== undefined) room.capacidad = parsed.data.capacidad;

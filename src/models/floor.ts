@@ -10,6 +10,11 @@ const floorSchema = new Schema(
     totalSeats: { type: Number, required: true, min: 1, max: 99 },
     totalRooms: { type: Number, required: true, min: 0, max: 99 },
     active: { type: Boolean, required: true, default: true },
+    layoutPositionSpace: {
+      type: String,
+      enum: ["container", "image"],
+      default: "container",
+    },
   },
   { timestamps: true },
 );
@@ -27,6 +32,7 @@ export type FloorDocument = {
   totalSeats: number;
   totalRooms: number;
   active: boolean;
+  layoutPositionSpace: "container" | "image";
   createdAt: Date;
   updatedAt: Date;
 };

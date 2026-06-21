@@ -1,7 +1,9 @@
+import type { LayoutPositionSpace } from "@/lib/floor-plan-frame";
 import { canWriteOrg } from "@/lib/org-access";
 import { connectMongo } from "@/lib/mongodb";
 import { loadCatalogs, serializeRoom, serializeSeat } from "@/lib/seat-assignment";
 import type { XpacesUser } from "@/lib/xpaces-user";
+import { viewerCanAccessFloor } from "@/lib/viewer-floor-access";
 import { BuildingModel, type BuildingDocument } from "@/models/building";
 import { FloorModel, type FloorDocument } from "@/models/floor";
 import { RoomModel, type RoomDocument } from "@/models/room";
@@ -15,6 +17,7 @@ export type FloorLayoutData = {
     imageUrl: string;
     totalSeats: number;
     totalRooms: number;
+    layoutPositionSpace: LayoutPositionSpace;
   };
   building: { id: string; name: string };
   seats: ReturnType<typeof serializeSeat>[];
@@ -40,6 +43,11 @@ export async function loadFloorLayoutData(
     return null;
   }
 
+  const canAccess = await viewerCanAccessFloor(user, organizationId, floorId);
+  if (!canAccess) {
+    return null;
+  }
+
   const [building, seats, rooms, catalogs] = await Promise.all([
     BuildingModel.findById(floor.buildingId).lean<BuildingDocument | null>(),
     SeatModel.find({ floorId: floor._id }).sort({ code: 1 }).lean<SeatDocument[]>(),
@@ -55,6 +63,7 @@ export async function loadFloorLayoutData(
       imageUrl: floor.imageUrl,
       totalSeats: floor.totalSeats,
       totalRooms: floor.totalRooms,
+      layoutPositionSpace: floor.layoutPositionSpace ?? "container",
     },
     building: building
       ? { id: String(building._id), name: building.name }

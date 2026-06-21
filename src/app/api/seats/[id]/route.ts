@@ -9,6 +9,7 @@ import {
   upsertCatalogValues,
 } from "@/lib/seat-assignment";
 import { connectMongo } from "@/lib/mongodb";
+import { FloorModel } from "@/models/floor";
 import { SeatModel } from "@/models/seat";
 
 const positionSchema = z
@@ -66,6 +67,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     } else {
       seat.position = { x: parsed.data.position.x, y: parsed.data.position.y };
     }
+    await FloorModel.updateOne({ _id: seat.floorId }, { layoutPositionSpace: "image" });
   }
 
   if (parsed.data.grupo !== undefined) seat.grupo = parsed.data.grupo.trim();

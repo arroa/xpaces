@@ -1,14 +1,24 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { SuperAdminDashboard } from "@/components/super-admin-dashboard";
 import { isOrgAdmin, isSuperAdmin, isViewer, roleLabel } from "@/lib/roles";
 import { requireCurrentXpacesUser } from "@/lib/xpaces-user";
+import { listViewerAccessibleFloors, viewerNeedsFloorScope } from "@/lib/viewer-floor-access";
 
 export default async function DashboardPage() {
   const user = await requireCurrentXpacesUser();
 
   if (isSuperAdmin(user.roles)) {
     return <SuperAdminDashboard />;
+  }
+
+  if (isViewer(user.roles) && !isOrgAdmin(user.roles) && user.organizationId) {
+    const floors = await listViewerAccessibleFloors(user.id, user.organizationId);
+    if (viewerNeedsFloorScope(user) && floors.length === 0) {
+      redirect("/org/sin-plantas");
+    }
+    redirect("/org/plantas");
   }
 
   return (
@@ -23,23 +33,16 @@ export default async function DashboardPage() {
           Gestión visual de puestos y salas sobre plantas de edificio.
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {isOrgAdmin(user.roles) && (
-            <>
-              <Link href="/org/buildings" className="btn-amber rounded-xl px-4 py-2 text-sm">
-                Edificios y plantas
-              </Link>
-              <Link href="/org/viewers" className="btn-outline-amber rounded-xl px-4 py-2 text-sm">
-                Viewers
-              </Link>
-            </>
-          )}
-          {isViewer(user.roles) && (
-            <Link href="/org/buildings" className="btn-outline-amber rounded-xl px-4 py-2 text-sm">
-              Ver plantas
+        {isOrgAdmin(user.roles) && (
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/org/buildings" className="btn-amber rounded-xl px-4 py-2 text-sm">
+              Edificios y plantas
             </Link>
-          )}
-        </div>
+            <Link href="/org/viewers" className="btn-outline-amber rounded-xl px-4 py-2 text-sm">
+              Viewers
+            </Link>
+          </div>
+        )}
       </section>
     </div>
   );

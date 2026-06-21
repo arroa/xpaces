@@ -14,7 +14,11 @@ export default async function OrgBuildingsPage() {
     redirect("/dashboard");
   }
 
-  if (!user.organizationId || (!isOrgAdmin(user.roles) && !isViewer(user.roles))) {
+  if (isViewer(user.roles) && !isOrgAdmin(user.roles)) {
+    redirect("/org/plantas");
+  }
+
+  if (!user.organizationId || !isOrgAdmin(user.roles)) {
     redirect("/dashboard");
   }
 

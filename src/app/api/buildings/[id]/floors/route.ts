@@ -5,6 +5,10 @@ import { uploadFloorImage } from "@/lib/cloudinary-upload";
 import { requireApiOrgMember, requireApiOrgMemberWrite } from "@/lib/org-access";
 import { provisionFloorSpaces, serializeFloor } from "@/lib/floor-spaces";
 import { connectMongo } from "@/lib/mongodb";
+import {
+  getViewerFloorIds,
+  viewerNeedsFloorScope,
+} from "@/lib/viewer-floor-access";
 import { BuildingModel } from "@/models/building";
 import { FloorModel, type FloorDocument } from "@/models/floor";
 import { SeatModel } from "@/models/seat";
@@ -40,7 +44,13 @@ export async function GET(request: Request, context: RouteContext) {
     .sort({ name: 1 })
     .lean<FloorDocument[]>();
 
-  const floorIds = floors.map((floor) => floor._id);
+  let visibleFloors = floors;
+  if (viewerNeedsFloorScope(authResult.user)) {
+    const allowed = new Set(await getViewerFloorIds(authResult.user.id, authResult.organizationId));
+    visibleFloors = floors.filter((floor) => allowed.has(String(floor._id)));
+  }
+
+  const floorIds = visibleFloors.map((floor) => floor._id);
   const assignedCounts =
     floorIds.length > 0
       ? await SeatModel.aggregate<{ _id: typeof floorIds[number]; assignedSeats: number }>([
@@ -58,7 +68,7 @@ export async function GET(request: Request, context: RouteContext) {
   );
 
   return NextResponse.json({
-    floors: floors.map((floor) => ({
+    floors: visibleFloors.map((floor) => ({
       ...serializeFloor(floor),
       assignedSeats: assignedByFloorId.get(String(floor._id)) ?? 0,
     })),

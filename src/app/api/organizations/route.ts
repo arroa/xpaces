@@ -5,7 +5,7 @@ import { requireApiSuperAdmin } from "@/lib/api-auth";
 import { ensureClerkUser, normalizeEmail } from "@/lib/clerk-users";
 import { slugify } from "@/lib/cloudinary";
 import { connectMongo } from "@/lib/mongodb";
-import { isOrgAdminOfAnotherOrganization, upsertOrgAdmin } from "@/lib/org-admin-assignment";
+import { upsertOrgAdmin } from "@/lib/org-admin-assignment";
 import { ROLE_ORG_ADMIN, ROLE_SUPER_ADMIN, ROLE_VIEWER } from "@/lib/roles";
 import { BuildingModel } from "@/models/building";
 import { FloorModel } from "@/models/floor";

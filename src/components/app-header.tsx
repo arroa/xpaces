@@ -14,17 +14,20 @@ type AppHeaderProps = {
 
 export function AppHeader({ user }: AppHeaderProps) {
   const pageTitle = usePageHeaderTitleValue();
-  const links = [{ href: "/dashboard", label: "Panel" }];
+  const isViewerOnly =
+    isViewer(user.roles) && !isOrgAdmin(user.roles) && !isSuperAdmin(user.roles);
+  const homeHref = isViewerOnly ? "/org/plantas" : "/dashboard";
+
+  const links = isViewerOnly
+    ? [{ href: "/org/plantas", label: "Plantas" }]
+    : [{ href: "/dashboard", label: "Panel" }];
 
   if (isSuperAdmin(user.roles)) {
     links.push({ href: "/admin/organizations", label: "Organizaciones" });
   }
 
-  if (isOrgAdmin(user.roles) || isViewer(user.roles)) {
-    links.push({ href: "/org/buildings", label: "Edificios" });
-  }
-
   if (isOrgAdmin(user.roles)) {
+    links.push({ href: "/org/buildings", label: "Edificios" });
     links.push({ href: "/org/viewers", label: "Viewers" });
   }
 
@@ -32,7 +35,7 @@ export function AppHeader({ user }: AppHeaderProps) {
     <header className="sticky top-0 z-50 shrink-0 border-b border-[var(--border)] bg-[#0a0a0a]/90 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 items-center gap-8">
-          <BrandLogo href="/dashboard" />
+          <BrandLogo href={homeHref} />
           <nav className="hidden gap-5 text-sm sm:flex">
             {links.map((link) => (
               <Link

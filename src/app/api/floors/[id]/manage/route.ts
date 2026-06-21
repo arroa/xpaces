@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canWriteOrg, requireApiOrgMember } from "@/lib/org-access";
 import { serializeRoom } from "@/lib/seat-assignment";
 import { connectMongo } from "@/lib/mongodb";
+import { assertViewerFloorAccess } from "@/lib/viewer-floor-access";
 import { BuildingModel, type BuildingDocument } from "@/models/building";
 import { FloorModel, type FloorDocument } from "@/models/floor";
 import { RoomModel, type RoomDocument } from "@/models/room";
@@ -17,6 +18,11 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
+  const accessError = await assertViewerFloorAccess(authResult.user, authResult.organizationId, id);
+  if (accessError) {
+    return accessError;
+  }
+
   await connectMongo();
 
   const floor = await FloorModel.findOne({

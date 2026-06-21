@@ -3,13 +3,25 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { isOrgAdmin, isViewer } from "@/lib/roles";
 import { getCurrentXpacesUser } from "@/lib/xpaces-user";
+import { listViewerAccessibleFloors, viewerNeedsFloorScope } from "@/lib/viewer-floor-access";
 
 export default async function LandingPage() {
   const { userId } = await auth();
   if (userId) {
     const xpacesUser = await getCurrentXpacesUser();
-    redirect(xpacesUser ? "/dashboard" : "/sin-acceso");
+    if (!xpacesUser) {
+      redirect("/sin-acceso");
+    }
+    if (isViewer(xpacesUser.roles) && !isOrgAdmin(xpacesUser.roles) && xpacesUser.organizationId) {
+      const floors = await listViewerAccessibleFloors(xpacesUser.id, xpacesUser.organizationId);
+      if (viewerNeedsFloorScope(xpacesUser) && floors.length === 0) {
+        redirect("/org/sin-plantas");
+      }
+      redirect("/org/plantas");
+    }
+    redirect("/dashboard");
   }
 
   return (

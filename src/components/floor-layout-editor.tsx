@@ -6,9 +6,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CatalogInput } from "@/components/catalog-input";
 import { usePageHeaderTitle } from "@/components/page-header-title";
 import type { FloorLayoutData } from "@/lib/floor-layout-data";
+import {
+  computeFittedPlanFrame,
+  pointerToImagePercent,
+  toImageSpacePosition,
+  type PlanPosition,
+} from "@/lib/floor-plan-frame";
 import { withOrgContext } from "@/lib/org-api-client";
 
-type Position = { x: number; y: number };
+type Position = PlanPosition;
 
 type Seat = {
   id: string;
@@ -29,12 +35,6 @@ type Room = {
   medios: boolean;
 };
 
-type Catalogs = {
-  grupo: string[];
-  equipo: string[];
-  empresa: string[];
-};
-
 type LayoutData = FloorLayoutData;
 
 type DragPayload =
@@ -46,10 +46,6 @@ type FloorLayoutEditorProps = {
   organizationId?: string;
   initialData?: LayoutData;
 };
-
-function clampPercent(value: number) {
-  return Math.min(100, Math.max(0, value));
-}
 
 function flattenFloatingItems(
   unplacedSeats: { id: string; code: string }[],
@@ -119,7 +115,8 @@ export function FloorLayoutEditor({
   organizationId,
   initialData,
 }: FloorLayoutEditorProps) {
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const layoutMigratedRef = useRef(false);
   const moveSessionRef = useRef<{
     pointerId: number;
     target: HTMLElement;
@@ -140,6 +137,158 @@ export function FloorLayoutEditor({
   const [formEmpresa, setFormEmpresa] = useState("");
   const [formPersona, setFormPersona] = useState("");
   const [saving, setSaving] = useState(false);
+  const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+  const [migratingLayout, setMigratingLayout] = useState(
+    () => Boolean(initialData?.canWrite && initialData.floor.layoutPositionSpace === "container"),
+  );
+
+  const planFrame = useMemo(
+    () => computeFittedPlanFrame(viewportSize, imageNaturalSize),
+    [viewportSize, imageNaturalSize],
+  );
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setViewportSize({ width, height });
+    });
+
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [data?.floor.imageUrl, loading]);
+
+  useEffect(() => {
+    layoutMigratedRef.current = false;
+    setImageNaturalSize({ width: 0, height: 0 });
+    setViewportSize({ width: 0, height: 0 });
+    setMigratingLayout(
+      Boolean(data?.canWrite && data?.floor.layoutPositionSpace === "container"),
+    );
+  }, [floorId]);
+
+  useEffect(() => {
+    const imageUrl = data?.floor.imageUrl;
+    if (!imageUrl) {
+      return;
+    }
+
+    const probe = new window.Image();
+    probe.onload = () => {
+      setImageNaturalSize({ width: probe.naturalWidth, height: probe.naturalHeight });
+    };
+    probe.src = imageUrl;
+  }, [data?.floor.imageUrl, floorId]);
+
+  const resolveDisplayPosition = useCallback(
+    (position: Position | null): Position | null => {
+      if (!position || !data || !planFrame.width) {
+        return position;
+      }
+      return toImageSpacePosition(
+        position,
+        data.floor.layoutPositionSpace,
+        planFrame,
+        viewportSize,
+      );
+    },
+    [data, planFrame, viewportSize],
+  );
+
+  const migrateLayoutPositions = useCallback(async () => {
+    if (!data?.canWrite || data.floor.layoutPositionSpace === "image") {
+      setMigratingLayout(false);
+      return;
+    }
+
+    const hasPlaced =
+      data.seats.some((seat) => seat.position) || data.rooms.some((room) => room.position);
+
+    if (hasPlaced && !planFrame.width) {
+      return;
+    }
+
+    setMigratingLayout(true);
+
+    const seats = data.seats.map((seat) => ({
+      id: seat.id,
+      position:
+        seat.position && hasPlaced
+          ? toImageSpacePosition(seat.position, "container", planFrame, viewportSize)
+          : seat.position,
+    }));
+    const rooms = data.rooms.map((room) => ({
+      id: room.id,
+      position:
+        room.position && hasPlaced
+          ? toImageSpacePosition(room.position, "container", planFrame, viewportSize)
+          : room.position,
+    }));
+
+    try {
+      const res = await fetch(
+        `/api/floors/${floorId}/migrate-layout-positions`,
+        withOrgContext(organizationId, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seats, rooms }),
+        }),
+      );
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(json.error ?? "No se pudo migrar el layout");
+        layoutMigratedRef.current = false;
+        return;
+      }
+
+      setData((current) => {
+        if (!current) {
+          return current;
+        }
+        const seatById = new Map(seats.map((seat) => [seat.id, seat.position]));
+        const roomById = new Map(rooms.map((room) => [room.id, room.position]));
+        return {
+          ...current,
+          floor: { ...current.floor, layoutPositionSpace: "image" },
+          seats: current.seats.map((seat) => ({
+            ...seat,
+            position: seatById.get(seat.id) ?? seat.position,
+          })),
+          rooms: current.rooms.map((room) => ({
+            ...room,
+            position: roomById.get(room.id) ?? room.position,
+          })),
+        };
+      });
+    } finally {
+      setMigratingLayout(false);
+    }
+  }, [data, floorId, organizationId, planFrame, viewportSize]);
+
+  useEffect(() => {
+    if (!data?.canWrite || data.floor.layoutPositionSpace === "image" || layoutMigratedRef.current) {
+      return;
+    }
+
+    const hasPlaced =
+      data.seats.some((seat) => seat.position) || data.rooms.some((room) => room.position);
+
+    if (hasPlaced && (!planFrame.width || !imageNaturalSize.width)) {
+      return;
+    }
+
+    layoutMigratedRef.current = true;
+    void migrateLayoutPositions();
+  }, [data, planFrame.width, imageNaturalSize.width, migrateLayoutPositions]);
 
   const loadLayout = useCallback(async () => {
     setLoading(true);
@@ -300,12 +449,11 @@ export function FloorLayoutEditor({
   }
 
   function getPositionFromPointer(clientX: number, clientY: number): Position | null {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return null;
-    return {
-      x: clampPercent(((clientX - rect.left) / rect.width) * 100),
-      y: clampPercent(((clientY - rect.top) / rect.height) * 100),
-    };
+    const viewport = viewportRef.current;
+    if (!viewport || !planFrame.width) {
+      return null;
+    }
+    return pointerToImagePercent(clientX, clientY, viewport.getBoundingClientRect(), planFrame);
   }
 
   async function placeItem(payload: DragPayload, position: Position) {
@@ -738,66 +886,113 @@ export function FloorLayoutEditor({
           </section>
 
           <section
-            ref={canvasRef}
-            className="relative min-h-0 flex-1 overflow-visible rounded-2xl border border-[var(--border)] bg-black/40"
+            ref={viewportRef}
+            className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => void handleCanvasDrop(e)}
             onPointerMove={(e) => void handlePointerMove(e)}
             onPointerUp={(e) => void handlePointerUp(e)}
           >
+            {migratingLayout && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 text-sm text-[var(--muted)]">
+                Actualizando coordenadas del plano…
+              </div>
+            )}
             {data.floor.imageUrl ? (
-              <div className="relative h-full w-full">
-            <Image
-              src={data.floor.imageUrl}
-              alt={data.floor.name}
-              fill
-              className="object-contain object-center"
-              sizes="100vw"
-              priority
-            />
-            {placedSeats.map((seat) => (
-              <button
-                key={seat.id}
-                type="button"
-                onClick={() => selectSeat(seat.id)}
-                onPointerDown={(e) => startMove("seat", seat.id, e)}
-                style={{
-                  left: `${seat.position!.x}%`,
-                  top: `${seat.position!.y}%`,
-                }}
-                className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border p-0 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
-                  selectedSeatId === seat.id
-                    ? "border-white bg-[var(--besharpx-amber)] text-[#171717] ring-white/70"
-                    : isSeatOccupied(seat)
-                      ? "border-[var(--besharpx-amber)] bg-[var(--besharpx-amber)]/90 text-[#171717]"
-                      : "border-[var(--besharpx-amber)]/60 bg-[#171717]/90 text-[var(--besharpx-amber)]"
-                }`}
-              >
-                {seat.code}
-                <OccupiedSeatTooltip seat={seat} />
-              </button>
-            ))}
-            {placedRooms.map((room) => (
-              <button
-                key={room.id}
-                type="button"
-                onClick={() => selectRoom(room.id)}
-                onPointerDown={(e) => startMove("room", room.id, e)}
-                style={{
-                  left: `${room.position!.x}%`,
-                  top: `${room.position!.y}%`,
-                }}
-                className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded border px-0.5 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
-                  selectedRoomId === room.id
-                    ? "border-white bg-sky-400 text-[#171717] ring-white/70"
-                    : "border-sky-400/70 bg-[#171717]/90 text-sky-300"
-                }`}
-              >
-                {room.code}
-                <PlantedRoomTooltip room={room} />
-              </button>
-            ))}
-          </div>
+              planFrame.width > 0 ? (
+                <div
+                  className="relative"
+                  style={{ width: planFrame.width, height: planFrame.height }}
+                >
+                  <Image
+                    src={data.floor.imageUrl}
+                    alt={data.floor.name}
+                    fill
+                    className="select-none object-fill"
+                    sizes={`${Math.round(planFrame.width)}px`}
+                    priority
+                    onLoad={(event) => {
+                      const image = event.currentTarget;
+                      setImageNaturalSize({
+                        width: image.naturalWidth,
+                        height: image.naturalHeight,
+                      });
+                    }}
+                  />
+                  {placedSeats.map((seat) => {
+                    const displayPosition = resolveDisplayPosition(seat.position);
+                    if (!displayPosition) {
+                      return null;
+                    }
+                    return (
+                      <button
+                        key={seat.id}
+                        type="button"
+                        onClick={() => selectSeat(seat.id)}
+                        onPointerDown={(e) => startMove("seat", seat.id, e)}
+                        style={{
+                          left: `${displayPosition.x}%`,
+                          top: `${displayPosition.y}%`,
+                        }}
+                        className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border p-0 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
+                          selectedSeatId === seat.id
+                            ? "border-white bg-[var(--besharpx-amber)] text-[#171717] ring-white/70"
+                            : isSeatOccupied(seat)
+                              ? "border-[var(--besharpx-amber)] bg-[var(--besharpx-amber)]/90 text-[#171717]"
+                              : "border-[var(--besharpx-amber)]/60 bg-[#171717]/90 text-[var(--besharpx-amber)]"
+                        }`}
+                      >
+                        {seat.code}
+                        <OccupiedSeatTooltip seat={seat} />
+                      </button>
+                    );
+                  })}
+                  {placedRooms.map((room) => {
+                    const displayPosition = resolveDisplayPosition(room.position);
+                    if (!displayPosition) {
+                      return null;
+                    }
+                    return (
+                      <button
+                        key={room.id}
+                        type="button"
+                        onClick={() => selectRoom(room.id)}
+                        onPointerDown={(e) => startMove("room", room.id, e)}
+                        style={{
+                          left: `${displayPosition.x}%`,
+                          top: `${displayPosition.y}%`,
+                        }}
+                        className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded border px-0.5 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
+                          selectedRoomId === room.id
+                            ? "border-white bg-sky-400 text-[#171717] ring-white/70"
+                            : "border-sky-400/70 bg-[#171717]/90 text-sky-300"
+                        }`}
+                      >
+                        {room.code}
+                        <PlantedRoomTooltip room={room} />
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="relative h-full w-full">
+                  <Image
+                    src={data.floor.imageUrl}
+                    alt={data.floor.name}
+                    fill
+                    className="select-none object-contain object-center"
+                    sizes="100vw"
+                    priority
+                    onLoad={(event) => {
+                      const image = event.currentTarget;
+                      setImageNaturalSize({
+                        width: image.naturalWidth,
+                        height: image.naturalHeight,
+                      });
+                    }}
+                  />
+                </div>
+              )
             ) : (
               <div className="flex h-full items-center justify-center text-[var(--muted)]">
                 Esta planta no tiene imagen.

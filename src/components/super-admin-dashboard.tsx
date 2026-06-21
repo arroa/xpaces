@@ -123,6 +123,12 @@ function OrganizationEditCard({
           >
             Gestionar
           </Link>
+          <Link
+            href={`/admin/organizations/${org.id}/viewers`}
+            className="block rounded-xl border border-[var(--border)] py-2.5 text-center text-sm font-medium text-[var(--muted)] transition hover:border-[var(--besharpx-amber)]/40 hover:text-[var(--besharpx-amber)]"
+          >
+            Viewers
+          </Link>
         </div>
       </form>
     </article>
