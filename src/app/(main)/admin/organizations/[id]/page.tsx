@@ -27,14 +27,15 @@ export default async function AdminOrganizationPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <section className="card-executive rounded-2xl px-8 py-5">
+      <section className="card-executive rounded-2xl px-8 py-6">
         <Link
           href="/dashboard"
-          className="text-sm text-[var(--muted)] hover:text-[var(--besharpx-amber)]"
+          className="text-sm text-[var(--muted)] transition hover:text-[var(--besharpx-amber)]"
         >
           ← Panel maestro
         </Link>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">{organization.name}</h1>
+        <p className="section-kicker mt-4">Organización</p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight">{organization.name}</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">{organization.slug}</p>
       </section>
 

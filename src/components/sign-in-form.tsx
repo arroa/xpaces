@@ -194,7 +194,7 @@ function SignInFormInner({ signIn, setActive }: SignInFormInnerProps) {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-3 outline-none transition focus:border-[var(--besharpx-amber)]/50"
+                className="mt-1.5 w-full rounded-xl input-field px-4 py-3"
                 placeholder="tu@empresa.com"
               />
             </label>
@@ -223,7 +223,7 @@ function SignInFormInner({ signIn, setActive }: SignInFormInnerProps) {
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                className="mt-1.5 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-3 text-center text-2xl tracking-[0.4em] outline-none transition focus:border-[var(--besharpx-amber)]/50"
+                className="mt-1.5 w-full rounded-xl input-field px-4 py-3 text-center text-2xl tracking-[0.4em]"
                 placeholder="000000"
               />
             </label>
@@ -325,7 +325,7 @@ function DevSignInForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-3 outline-none transition focus:border-[var(--besharpx-amber)]/50"
+              className="mt-1.5 w-full rounded-xl input-field px-4 py-3"
               placeholder="tu@empresa.com"
             />
           </label>

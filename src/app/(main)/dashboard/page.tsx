@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <section className="card-executive rounded-2xl p-8">
-        <p className="text-sm font-medium text-[var(--besharpx-amber)]">Panel</p>
+        <p className="section-kicker">Panel</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">Xpaces</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           {user.email} · {roleLabel(user.roles)}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { DashboardOrganizationsSkeleton } from "@/components/dashboard-organizations-skeleton";
+import { LoadingLink } from "@/components/loading-link";
 import { LoadingOverlay } from "@/components/loading-overlay";
 
 type OrganizationCard = {
@@ -78,7 +79,7 @@ function OrganizationEditCard({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+            className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
           />
         </label>
         <label className="block">
@@ -88,7 +89,7 @@ function OrganizationEditCard({
             required
             value={orgAdminEmail}
             onChange={(e) => setOrgAdminEmail(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+            className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
           />
         </label>
 
@@ -97,15 +98,15 @@ function OrganizationEditCard({
         </p>
 
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-[var(--card-elevated)] px-2 py-2">
+          <div className="surface-inset rounded-lg px-2 py-2">
             <p className="text-lg font-semibold">{org.stats.buildings}</p>
             <p className="text-[10px] uppercase tracking-wide text-[var(--muted)]">Edificios</p>
           </div>
-          <div className="rounded-lg bg-[var(--card-elevated)] px-2 py-2">
+          <div className="surface-inset rounded-lg px-2 py-2">
             <p className="text-lg font-semibold">{org.stats.floors}</p>
             <p className="text-[10px] uppercase tracking-wide text-[var(--muted)]">Plantas</p>
           </div>
-          <div className="rounded-lg bg-[var(--card-elevated)] px-2 py-2">
+          <div className="surface-inset rounded-lg px-2 py-2">
             <p className="text-lg font-semibold">{org.stats.viewers}</p>
             <p className="text-[10px] uppercase tracking-wide text-[var(--muted)]">Viewers</p>
           </div>
@@ -117,15 +118,16 @@ function OrganizationEditCard({
           <button type="submit" disabled={loading} className="btn-amber w-full rounded-xl py-2.5 text-sm">
             {loading ? "Guardando…" : "Guardar"}
           </button>
-          <Link
+          <LoadingLink
             href={`/admin/organizations/${org.id}/buildings`}
+            message="Abriendo edificios…"
             className="btn-outline-amber block rounded-xl py-2.5 text-center text-sm font-medium"
           >
             Gestionar
-          </Link>
+          </LoadingLink>
           <Link
             href={`/admin/organizations/${org.id}/viewers`}
-            className="block rounded-xl border border-[var(--border)] py-2.5 text-center text-sm font-medium text-[var(--muted)] transition hover:border-[var(--besharpx-amber)]/40 hover:text-[var(--besharpx-amber)]"
+            className="btn-outline-amber block rounded-xl py-2.5 text-center text-sm font-medium"
           >
             Viewers
           </Link>
@@ -213,7 +215,7 @@ function NewOrganizationCard({ onCreated }: { onCreated: () => void }) {
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+            className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
           />
         </label>
         <label className="block">
@@ -223,7 +225,7 @@ function NewOrganizationCard({ onCreated }: { onCreated: () => void }) {
             required
             value={orgAdminEmail}
             onChange={(e) => setOrgAdminEmail(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+            className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
           />
         </label>
         {error && <p className="text-sm text-red-300">{error}</p>}
@@ -258,27 +260,29 @@ export function SuperAdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <section className="card-executive rounded-2xl px-8 py-5">
-        <h1 className="text-2xl font-bold tracking-tight">Panel Maestro Xpaces</h1>
+      <section className="card-executive rounded-2xl px-8 py-6">
+        <p className="section-kicker">Super admin</p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight">Panel Maestro Xpaces</h1>
       </section>
 
       {summary && (
-        <section className="flex flex-wrap items-center gap-x-5 text-sm">
+        <section className="card-executive flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl px-6 py-4 text-sm">
           {[
             { label: "Organizaciones", value: summary.organizations },
             { label: "Edificios", value: summary.buildings },
             { label: "Plantas", value: summary.floors },
             { label: "Viewers", value: summary.viewers },
           ].map((item) => (
-            <span key={item.label} className="inline-flex items-baseline gap-1.5">
+            <span key={item.label} className="inline-flex items-baseline gap-2">
               <span className="text-[var(--muted)]">{item.label}</span>
-              <span className="font-semibold text-[var(--besharpx-amber)]">{item.value}</span>
+              <span className="text-lg font-semibold text-[var(--besharpx-amber)]">{item.value}</span>
             </span>
           ))}
         </section>
       )}
 
       <section>
+        <p className="section-kicker mb-1">Gestión</p>
         <h2 className="mb-4 text-xl font-semibold">Organizaciones</h2>
 
         {loading ? (

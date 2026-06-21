@@ -86,7 +86,7 @@ function ViewerModal({ open, title, subtitle, onClose, children, footer }: Viewe
         className="card-executive flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-[var(--border-strong)] px-5 py-4">
           <div className="min-w-0">
             <h2 className="text-lg font-semibold">{title}</h2>
             {subtitle && <p className="mt-0.5 truncate text-sm text-[var(--muted)]">{subtitle}</p>}
@@ -103,7 +103,7 @@ function ViewerModal({ open, title, subtitle, onClose, children, footer }: Viewe
 
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
 
-        <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--border)] px-5 py-4">
+        <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--border-strong)] px-5 py-4">
           {footer}
         </div>
       </div>
@@ -269,7 +269,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
       </section>
 
       <section className="card-executive overflow-hidden rounded-2xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-strong)] px-4 py-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--besharpx-amber)]">
             Lista
             {viewers.length > 0 && (
@@ -293,7 +293,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="border-b border-[var(--border)] text-xs uppercase tracking-wide text-[var(--muted)]">
+                <tr className="border-b border-[var(--border-strong)] text-xs uppercase tracking-wide text-[var(--muted)]">
                   <th className="px-4 py-2.5 font-medium">Email</th>
                   <th className="px-4 py-2.5 font-medium">Nombre</th>
                   <th className="px-4 py-2.5 font-medium">Plantas</th>
@@ -302,7 +302,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {viewers.map((viewer) => (
-                  <tr key={viewer.id} className="hover:bg-[var(--card-elevated)]/40">
+                  <tr key={viewer.id} className="hover:bg-[var(--field)]/50">
                     <td className="px-4 py-2.5 font-medium">{viewer.email}</td>
                     <td className="px-4 py-2.5 text-[var(--muted)]">
                       {viewer.displayName || "—"}
@@ -348,7 +348,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
               type="button"
               onClick={closeModal}
               disabled={loading}
-              className="rounded-lg px-3 py-1.5 text-sm text-[var(--muted)] hover:bg-[var(--card-elevated)] disabled:opacity-50"
+              className="rounded-lg px-3 py-1.5 text-sm text-[var(--muted)] hover:bg-[var(--field)] disabled:opacity-50"
             >
               Cancelar
             </button>
@@ -373,7 +373,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
                 autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl input-field px-3 py-2 text-sm"
               />
             </label>
             <label className="block sm:col-span-2">
@@ -381,7 +381,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl input-field px-3 py-2 text-sm"
               />
             </label>
           </div>
@@ -409,7 +409,7 @@ export function OrgViewersManager({ organizationId }: OrgViewersManagerProps) {
               type="button"
               onClick={closeModal}
               disabled={loading}
-              className="rounded-lg px-3 py-1.5 text-sm text-[var(--muted)] hover:bg-[var(--card-elevated)] disabled:opacity-50"
+              className="rounded-lg px-3 py-1.5 text-sm text-[var(--muted)] hover:bg-[var(--field)] disabled:opacity-50"
             >
               Cancelar
             </button>

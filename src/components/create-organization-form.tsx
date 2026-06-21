@@ -52,7 +52,7 @@ export function CreateOrganizationForm({ onCreated }: CreateOrganizationFormProp
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+          className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
         />
       </label>
       <label className="block">
@@ -62,7 +62,7 @@ export function CreateOrganizationForm({ onCreated }: CreateOrganizationFormProp
           required
           value={orgAdminEmail}
           onChange={(e) => setOrgAdminEmail(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+          className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
         />
       </label>
       <label className="block">
@@ -70,7 +70,7 @@ export function CreateOrganizationForm({ onCreated }: CreateOrganizationFormProp
         <input
           value={orgAdminDisplayName}
           onChange={(e) => setOrgAdminDisplayName(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+          className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
         />
       </label>
       {error && <p className="text-sm text-red-300">{error}</p>}

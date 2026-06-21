@@ -21,7 +21,7 @@ export function BuildingsPageSkeleton() {
               <Skeleton className="h-6 w-40" />
               <Skeleton className="h-8 w-24 rounded-full" />
             </div>
-            <div className="border-t border-[var(--border)] p-5">
+            <div className="border-t border-[var(--border-strong)] p-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <Skeleton className="h-52 rounded-xl" />
                 <Skeleton className="h-52 rounded-xl" />

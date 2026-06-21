@@ -6,6 +6,7 @@ import { FloorRoomsModal } from "@/components/floor-rooms-modal";
 import { ImageCropUpload, type ImageCropUploadHandle } from "@/components/image-crop-upload";
 import { BuildingsPageSkeleton } from "@/components/buildings-page-skeleton";
 import { useConfirm } from "@/components/confirm-provider";
+import { LoadingLink } from "@/components/loading-link";
 import { LoadingOverlay } from "@/components/loading-overlay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { withOrgContext } from "@/lib/org-api-client";
@@ -418,7 +419,7 @@ export function BuildingsManager({
                 value={newBuildingName}
                 onChange={(e) => setNewBuildingName(e.target.value)}
                 placeholder="Torre Central"
-                className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+                className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
               />
             </label>
           </div>
@@ -443,7 +444,7 @@ export function BuildingsManager({
                 <div className="flex flex-wrap items-center justify-between gap-3 p-5">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <span className="text-lg font-semibold">{building.name}</span>
-                    <span className="rounded-full bg-[var(--card-elevated)] px-2.5 py-1 text-xs text-[var(--muted)]">
+                    <span className="surface-inset rounded-full px-2.5 py-1 text-xs text-[var(--muted)]">
                       {building.floorCount} planta{building.floorCount === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -463,7 +464,7 @@ export function BuildingsManager({
                           <input
                             value={editingBuildingName}
                             onChange={(e) => setEditingBuildingName(e.target.value)}
-                            className="rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-3 py-2 text-sm"
+                            className="rounded-lg input-field px-3 py-2 text-sm"
                           />
                           <button
                             type="button"
@@ -507,7 +508,7 @@ export function BuildingsManager({
                 </div>
 
                 {expanded && (
-                  <div className="border-t border-[var(--border)] p-5">
+                  <div className="border-t border-[var(--border-strong)] p-5">
                     <h3 className="mb-4 font-medium">Plantas</h3>
 
                     {loadingFloorsId === building.id ? (
@@ -561,7 +562,7 @@ export function BuildingsManager({
                   value={floorName}
                   onChange={(e) => setFloorName(e.target.value)}
                   placeholder="Piso 12"
-                  className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+                  className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
                 />
               </label>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -574,7 +575,7 @@ export function BuildingsManager({
                     required
                     value={totalSeats}
                     onChange={(e) => setTotalSeats(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+                    className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
                   />
                 </label>
                 <label className="block">
@@ -586,7 +587,7 @@ export function BuildingsManager({
                     required
                     value={totalRooms}
                     onChange={(e) => setTotalRooms(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5"
+                    className="mt-1 w-full rounded-xl input-field px-4 py-2.5"
                   />
                 </label>
               </div>
@@ -678,31 +679,32 @@ function FloorCard({
 }) {
   return (
     <article className="card-executive flex min-h-[280px] flex-col rounded-2xl p-6">
-      <div className="flex h-24 items-center justify-center rounded-xl bg-[var(--card-elevated)]">
+      <div className="flex h-24 items-center justify-center rounded-xl surface-inset">
         <FloorPlanIcon />
       </div>
       <p className="mt-4 text-lg font-semibold tracking-tight">{floor.name}</p>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-[var(--card-elevated)] px-2 py-2">
+        <div className="surface-inset rounded-lg px-2 py-2">
           <p className="text-lg font-semibold">{floor.totalSeats}</p>
           <p className="text-[10px] uppercase tracking-wide text-[var(--muted)]">Puestos</p>
         </div>
-        <div className="rounded-lg bg-[var(--card-elevated)] px-2 py-2">
+        <div className="surface-inset rounded-lg px-2 py-2">
           <p className="text-lg font-semibold">{floor.assignedSeats}</p>
           <p className="text-[10px] uppercase tracking-wide text-[var(--muted)]">Asignados</p>
         </div>
-        <div className="rounded-lg bg-[var(--card-elevated)] px-2 py-2">
+        <div className="surface-inset rounded-lg px-2 py-2">
           <p className="text-lg font-semibold">{floor.totalRooms}</p>
           <p className="text-[10px] uppercase tracking-wide text-[var(--muted)]">Salas</p>
         </div>
       </div>
       <div className="mt-auto space-y-2 pt-4">
-        <Link
+        <LoadingLink
           href={`${layoutBasePath}/${floor.id}/layout`}
+          message="Abriendo planta…"
           className="btn-amber block rounded-xl py-2.5 text-center text-sm font-medium"
         >
           Gestionar
-        </Link>
+        </LoadingLink>
         <button
           type="button"
           onClick={onSalas}

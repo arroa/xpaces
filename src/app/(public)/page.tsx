@@ -26,7 +26,7 @@ export default async function LandingPage() {
 
   return (
     <div className="mesh-landing min-h-screen">
-      <header className="border-b border-[var(--border)] px-4 py-6">
+      <header className="border-b border-[var(--border-strong)] px-4 py-6">
         <div className="mx-auto flex max-w-6xl justify-center">
           <BrandLogo href="/" />
         </div>

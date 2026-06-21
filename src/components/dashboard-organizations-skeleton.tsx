@@ -18,7 +18,7 @@ export function DashboardOrganizationsSkeleton() {
           <Skeleton className="h-10 w-full rounded-xl" />
         </article>
       ))}
-      <article className="card-executive flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] p-6">
+      <article className="card-executive flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border-strong)] p-6">
         <Skeleton className="h-14 w-14 rounded-full" />
         <Skeleton className="mt-4 h-5 w-44" />
       </article>

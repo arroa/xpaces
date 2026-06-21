@@ -29,8 +29,8 @@ export function CatalogInput({
         onChange={(e) => onChange(e.target.value)}
         className={
           compact
-            ? "mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm disabled:opacity-60"
-            : "mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] px-4 py-2.5 disabled:opacity-60"
+            ? "mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm disabled:opacity-60"
+            : "mt-1 w-full rounded-xl input-field px-4 py-2.5 disabled:opacity-60"
         }
       />
       <datalist id={listId}>

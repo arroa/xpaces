@@ -81,7 +81,7 @@ export function ViewerFloorAccessTree({
         return (
           <div
             key={building.id}
-            className="rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] p-3"
+            className="surface-inset rounded-xl p-3"
           >
             <label className="flex cursor-pointer items-center gap-2">
               <input
@@ -101,7 +101,7 @@ export function ViewerFloorAccessTree({
             </label>
 
             {building.floors.length > 0 ? (
-              <ul className="mt-2 space-y-1 border-l border-[var(--border)] pl-4">
+              <ul className="mt-2 space-y-1 border-l border-[var(--border-strong)] pl-4">
                 {building.floors.map((floor) => (
                   <li key={floor.id}>
                     <label className="flex cursor-pointer items-center gap-2 py-0.5">

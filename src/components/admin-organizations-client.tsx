@@ -51,7 +51,7 @@ export function AdminOrganizationsClient() {
             {organizations.map((org) => (
               <article
                 key={org.id}
-                className="rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] p-4"
+                className="surface-inset rounded-xl p-4"
               >
                 <p className="font-medium">{org.name}</p>
                 <p className="text-xs text-[var(--muted)]">{org.slug}</p>

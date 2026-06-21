@@ -185,7 +185,7 @@ export function FloorRoomsModal({
               return (
                 <div
                   key={room.id}
-                  className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] p-4 sm:grid-cols-[72px_1fr_1fr]"
+                  className="surface-inset grid gap-3 rounded-xl p-4 sm:grid-cols-[72px_1fr_1fr]"
                 >
                   <p className="self-center text-sm font-semibold text-sky-300">{room.code}</p>
                   <label className="block">
@@ -199,7 +199,7 @@ export function FloorRoomsModal({
                       onChange={(e) =>
                         updateDraft(room.id, { capacidad: Number(e.target.value) })
                       }
-                      className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 disabled:opacity-60"
+                      className="mt-1 w-full rounded-xl input-field px-4 py-2.5 disabled:opacity-60"
                     />
                   </label>
                   <label className="flex items-end gap-2 pb-2.5">

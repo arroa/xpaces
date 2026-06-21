@@ -75,7 +75,7 @@ function OccupiedSeatTooltip({ seat }: { seat: Seat }) {
   return (
     <span
       role="tooltip"
-      className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-30 w-max max-w-[200px] -translate-x-1/2 rounded-lg border border-[var(--border)] bg-[#171717]/95 px-2 py-1.5 text-left opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+      className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-30 w-max max-w-[200px] -translate-x-1/2 rounded-lg border border-[var(--border-strong)] bg-[var(--card)] px-2 py-1.5 text-left opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
     >
       <span className="block text-[11px] font-semibold leading-tight text-[var(--besharpx-amber)]">
         {seat.persona.trim()}
@@ -93,7 +93,7 @@ function PlantedRoomTooltip({ room }: { room: Room }) {
   return (
     <span
       role="tooltip"
-      className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-30 w-max max-w-[200px] -translate-x-1/2 rounded-lg border border-[var(--border)] bg-[#171717]/95 px-2 py-1.5 text-left opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+      className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-30 w-max max-w-[200px] -translate-x-1/2 rounded-lg border border-[var(--border-strong)] bg-[var(--card)] px-2 py-1.5 text-left opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
     >
       <span className="block text-[11px] font-semibold leading-tight text-sky-300">
         Sala {room.code}
@@ -712,7 +712,7 @@ export function FloorLayoutEditor({
                     disabled={!data.canWrite || seatOccupied}
                     onChange={(e) => setFormPersona(e.target.value)}
                     placeholder="Nombre"
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm disabled:opacity-60"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm disabled:opacity-60"
                   />
                 </label>
               </div>
@@ -742,7 +742,7 @@ export function FloorLayoutEditor({
                   <input
                     readOnly
                     value={`${selectedRoom.capacidad} puestos`}
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-80"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-80"
                   />
                 </label>
               </div>
@@ -752,7 +752,7 @@ export function FloorLayoutEditor({
                   <input
                     readOnly
                     value={selectedRoom.medios ? "Con medios" : "Sin medios"}
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-80"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-80"
                   />
                 </label>
               </div>
@@ -762,7 +762,7 @@ export function FloorLayoutEditor({
                   <input
                     readOnly
                     value="—"
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-40"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-40"
                   />
                 </label>
               </div>
@@ -772,7 +772,7 @@ export function FloorLayoutEditor({
                   <input
                     readOnly
                     value="—"
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-40"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-40"
                   />
                 </label>
               </div>
@@ -781,7 +781,7 @@ export function FloorLayoutEditor({
             <>
               <label className="w-12 shrink-0">
                 <span className="text-xs font-medium text-[var(--muted)]">Puesto</span>
-                <div className="mt-1 flex h-[34px] items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] text-sm text-[var(--muted)]">
+                <div className="surface-inset mt-1 flex h-[34px] items-center justify-center rounded-lg text-sm text-[var(--muted)]">
                   —
                 </div>
               </label>
@@ -793,7 +793,7 @@ export function FloorLayoutEditor({
                     disabled
                     value=""
                     placeholder="—"
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-40"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-40"
                   />
                 </label>
               </div>
@@ -805,7 +805,7 @@ export function FloorLayoutEditor({
                     disabled
                     value=""
                     placeholder="—"
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-40"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-40"
                   />
                 </label>
               </div>
@@ -821,7 +821,7 @@ export function FloorLayoutEditor({
                         ? "Selecciona en el plano"
                         : "Ver asignación"
                     }
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-40"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-40"
                   />
                 </label>
               </div>
@@ -833,7 +833,7 @@ export function FloorLayoutEditor({
                     disabled
                     value=""
                     placeholder="—"
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--card-elevated)] px-2.5 py-2 text-sm opacity-40"
+                    className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm opacity-40"
                   />
                 </label>
               </div>
@@ -887,7 +887,7 @@ export function FloorLayoutEditor({
 
           <section
             ref={viewportRef}
-            className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40"
+            className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-black/40"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => void handleCanvasDrop(e)}
             onPointerMove={(e) => void handlePointerMove(e)}

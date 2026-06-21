@@ -58,7 +58,7 @@ export function UserMenu({ email, roles }: UserMenuProps) {
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--card-elevated)] text-xs font-semibold text-[var(--besharpx-amber)] ring-2 ring-[var(--besharpx-amber)]/40 transition hover:ring-[var(--besharpx-amber)]/70"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--field)] text-xs font-semibold text-[var(--besharpx-amber)] ring-2 ring-[var(--besharpx-amber)]/40 transition hover:ring-[var(--besharpx-amber)]/70"
           aria-expanded={open}
           aria-haspopup="menu"
           aria-label="Menú de usuario"
@@ -68,9 +68,9 @@ export function UserMenu({ email, roles }: UserMenuProps) {
         {open && (
           <div
             role="menu"
-            className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-[var(--border)] bg-[#141414] shadow-2xl"
+            className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] shadow-2xl"
           >
-            <div className="border-b border-[var(--border)] px-4 py-3">
+            <div className="border-b border-[var(--border-strong)] px-4 py-3">
               <p className="truncate text-sm font-medium text-[var(--foreground)]">{email}</p>
               <p className="mt-1 text-xs text-[var(--besharpx-amber)]">{roleLabel(roles)}</p>
             </div>
@@ -80,7 +80,7 @@ export function UserMenu({ email, roles }: UserMenuProps) {
                 role="menuitem"
                 disabled={leaving}
                 onClick={() => void handleSignOut()}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-[var(--muted)] transition hover:bg-[var(--card-elevated)] hover:text-[var(--foreground)] disabled:opacity-50"
+                className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-[var(--muted)] transition hover:bg-[var(--field)] hover:text-[var(--foreground)] disabled:opacity-50"
               >
                 Cerrar sesión
               </button>

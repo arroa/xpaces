@@ -21,7 +21,7 @@ export function AuthLeavingOverlay() {
       aria-modal="true"
       aria-labelledby="farewell-title"
     >
-      <div className="farewell-modal rounded-2xl border-2 border-[var(--besharpx-amber)] bg-[#161616]">
+      <div className="farewell-modal rounded-2xl border-2 border-[var(--besharpx-amber)] bg-[var(--card)]">
         <div className="farewell-modal-body">
           <div className="flex flex-1 flex-col items-center justify-center gap-5">
             <h2
@@ -33,7 +33,7 @@ export function AuthLeavingOverlay() {
             <p className="farewell-modal-sub text-[clamp(0.95rem,2.5vw,1.25rem)] font-medium text-[var(--foreground)]/85">
               Cerrando sesión en Xpaces…
             </p>
-            <div className="farewell-modal-sub h-10 w-10 animate-spin rounded-full border-[3px] border-[#333] border-t-[var(--besharpx-amber)]" />
+            <div className="farewell-modal-sub h-10 w-10 animate-spin rounded-full border-[3px] border-[var(--border-strong)] border-t-[var(--besharpx-amber)]" />
           </div>
           <p className="pb-1 text-[0.65rem] font-bold uppercase tracking-[0.3em] text-[var(--besharpx-amber)]/80 sm:text-xs">
             BeSharpX

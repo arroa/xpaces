@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { usePageHeaderTitleValue } from "@/components/page-header-title";
@@ -13,6 +14,7 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({ user }: AppHeaderProps) {
+  const pathname = usePathname();
   const pageTitle = usePageHeaderTitleValue();
   const isViewerOnly =
     isViewer(user.roles) && !isOrgAdmin(user.roles) && !isSuperAdmin(user.roles);
@@ -31,8 +33,15 @@ export function AppHeader({ user }: AppHeaderProps) {
     links.push({ href: "/org/viewers", label: "Viewers" });
   }
 
+  function isNavActive(href: string) {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return (
-    <header className="sticky top-0 z-50 shrink-0 border-b border-[var(--border)] bg-[#0a0a0a]/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 shrink-0 border-b border-[var(--border-strong)] bg-[var(--card)] backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 items-center gap-8">
           <BrandLogo href={homeHref} />
@@ -41,7 +50,7 @@ export function AppHeader({ user }: AppHeaderProps) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[var(--muted)] transition hover:text-[var(--besharpx-amber)]"
+                className={`nav-link pb-0.5 ${isNavActive(link.href) ? "nav-link-active" : ""}`}
               >
                 {link.label}
               </Link>

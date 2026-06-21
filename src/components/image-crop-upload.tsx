@@ -71,12 +71,12 @@ export const ImageCropUpload = forwardRef<ImageCropUploadHandle, ImageCropUpload
             type="file"
             accept="image/jpeg,image/png,image/webp"
             onChange={(e) => void handleFileChange(e)}
-            className="mt-1 block w-full text-sm text-[var(--muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--card-elevated)] file:px-3 file:py-2 file:text-sm file:text-[var(--foreground)]"
+            className="mt-1 block w-full text-sm text-[var(--muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--field)] file:px-3 file:py-2 file:text-sm file:text-[var(--foreground)]"
           />
         </label>
 
         {currentImageUrl && !preview && (
-          <div className="overflow-hidden rounded-xl border border-[var(--border)]">
+          <div className="overflow-hidden rounded-xl border border-[var(--border-strong)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={currentImageUrl}
@@ -88,7 +88,7 @@ export const ImageCropUpload = forwardRef<ImageCropUploadHandle, ImageCropUpload
 
         {preview && (
           <div className="space-y-3">
-            <div className="relative h-64 overflow-hidden rounded-xl border border-[var(--border)] bg-black">
+            <div className="relative h-64 overflow-hidden rounded-xl border border-[var(--border-strong)] bg-black">
               <Cropper
                 image={preview}
                 crop={crop}

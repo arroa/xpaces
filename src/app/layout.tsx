@@ -22,10 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (!publishableKey) {
     return (
       <html lang="es" className={lexend.className}>
-        <body className="flex min-h-screen items-center justify-center bg-[#0a0a0a] p-8 text-[#f0f0f0]">
-          <div className="max-w-md rounded-xl border border-amber-500/30 bg-[#141414] p-6 text-sm">
-            <p className="font-semibold text-amber-400">Falta configurar Clerk</p>
-            <p className="mt-2 text-[#9ca3af]">
+        <body className="flex min-h-screen items-center justify-center bg-[var(--background)] p-8 text-[var(--foreground)]">
+          <div className="card-executive max-w-md rounded-xl p-6 text-sm">
+            <p className="font-semibold text-[var(--besharpx-amber)]">Falta configurar Clerk</p>
+            <p className="mt-2 text-[var(--muted)]">
               Agrega <code>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> y{" "}
               <code>CLERK_SECRET_KEY</code> en <code>.env.local</code>.
             </p>
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <html lang="es" className={lexend.className}>
-        <body className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0] antialiased">{children}</body>
+        <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased">{children}</body>
       </html>
     </ClerkProvider>
   );

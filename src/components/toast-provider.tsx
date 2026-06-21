@@ -30,8 +30,8 @@ function ToastBanner({ toast }: { toast: ToastState }) {
     <div
       className={`toast-banner rounded-xl border px-4 py-3 text-sm font-medium shadow-lg ${
         isSuccess
-          ? "border-[var(--besharpx-amber)]/40 bg-[#1a1a1a] text-[var(--besharpx-amber)]"
-          : "border-red-500/40 bg-[#1a1a1a] text-red-300"
+          ? "border-[var(--besharpx-amber)]/65 bg-[var(--card)] text-[var(--besharpx-amber)]"
+          : "border-red-500/65 bg-[var(--card)] text-red-300"
       }`}
     >
       {toast.message}

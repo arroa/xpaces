@@ -21,7 +21,7 @@ export function ViewerFloorsList({ floors, organizationName }: ViewerFloorsListP
       </section>
 
       <section className="card-executive overflow-hidden rounded-2xl">
-        <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="border-b border-[var(--border-strong)] px-4 py-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--besharpx-amber)]">
             Lista
             {floors.length > 0 && (
@@ -40,7 +40,7 @@ export function ViewerFloorsList({ floors, organizationName }: ViewerFloorsListP
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead>
-                <tr className="border-b border-[var(--border)] text-xs uppercase tracking-wide text-[var(--muted)]">
+                <tr className="border-b border-[var(--border-strong)] text-xs uppercase tracking-wide text-[var(--muted)]">
                   <th className="px-4 py-2.5 font-medium">Edificio</th>
                   <th className="px-4 py-2.5 font-medium">Planta</th>
                   <th className="px-4 py-2.5 font-medium">Puestos</th>
@@ -50,7 +50,7 @@ export function ViewerFloorsList({ floors, organizationName }: ViewerFloorsListP
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {floors.map((floor) => (
-                  <tr key={floor.id} className="hover:bg-[var(--card-elevated)]/40">
+                  <tr key={floor.id} className="hover:bg-[var(--field)]/50">
                     <td className="px-4 py-2.5">{floor.buildingName}</td>
                     <td className="px-4 py-2.5 font-medium">{floor.name}</td>
                     <td className="px-4 py-2.5 text-[var(--muted)]">{floor.totalSeats}</td>
