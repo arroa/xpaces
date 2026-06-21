@@ -14,6 +14,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Xpaces",
   description: "Organización de equipos en plantas de edificios — BeSharpX",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
+  },
+  themeColor: "#050506",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

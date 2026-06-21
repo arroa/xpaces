@@ -7,6 +7,7 @@ import { LoadingLink } from "@/components/loading-link";
 import { LoadingOverlay } from "@/components/loading-overlay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { withOrgContext } from "@/lib/org-api-client";
+import { exportSeatsConsultationExcel } from "@/lib/export-seats-consultation-excel";
 import {
   filterSeatRows,
   type SeatSearchOptions,
@@ -105,6 +106,7 @@ export function SeatsConsultation({
   const [error, setError] = useState("");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [exportingExcel, setExportingExcel] = useState(false);
 
   const loadOptions = useCallback(async () => {
     setError("");
@@ -223,13 +225,29 @@ export function SeatsConsultation({
     setSortDir("asc");
   }
 
+  async function handleExportExcel() {
+    if (sortedSeats.length === 0 || exportingExcel) {
+      return;
+    }
+
+    setExportingExcel(true);
+    try {
+      await exportSeatsConsultationExcel(sortedSeats);
+    } finally {
+      setExportingExcel(false);
+    }
+  }
+
   if (initialLoading) {
     return <SeatsConsultationSkeleton />;
   }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-      <LoadingOverlay visible={loadingBuilding} message="Cargando puestos…" />
+      <LoadingOverlay
+        visible={loadingBuilding || exportingExcel}
+        message={exportingExcel ? "Generando Excel…" : "Cargando puestos…"}
+      />
 
       <section className="shrink-0">
         {backHref && (
@@ -386,12 +404,28 @@ export function SeatsConsultation({
             )}
           </h2>
           {selectedBuildingId && !loadingBuilding && (
-            <p className="text-sm text-[var(--muted)]">
-              {sortedSeats.length} puesto{sortedSeats.length === 1 ? "" : "s"}
-              {hasActiveFilters && buildingSeats.length !== sortedSeats.length && (
-                <span> de {buildingSeats.length}</span>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--muted)]">
+                {sortedSeats.length} puesto{sortedSeats.length === 1 ? "" : "s"}
+                {hasActiveFilters && buildingSeats.length !== sortedSeats.length && (
+                  <span> de {buildingSeats.length}</span>
+                )}
+              </p>
+              {sortedSeats.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void handleExportExcel()}
+                  disabled={exportingExcel}
+                  className="btn-outline-amber inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium disabled:opacity-50"
+                  aria-label="Descarga XLS"
+                  title="Descarga XLS"
+                >
+                  <DownloadIcon />
+                  <ExcelIcon />
+                  Descarga XLS
+                </button>
               )}
-            </p>
+            </div>
           )}
         </div>
 
@@ -487,6 +521,38 @@ export function SeatsConsultation({
         </div>
       </section>
     </div>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      aria-hidden
+      className="h-4 w-4"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+    >
+      <path d="M10 3.5v9" strokeLinecap="round" />
+      <path d="M6.5 10 10 13.5 13.5 10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 16.5h12" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ExcelIcon() {
+  return (
+    <svg aria-hidden className="h-4 w-4" viewBox="0 0 20 20" fill="none">
+      <rect x="3" y="3" width="14" height="14" rx="2" fill="#217346" />
+      <path
+        d="M7.5 6.5 9.5 10 7.5 13.5M10.5 13.5h2.5"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

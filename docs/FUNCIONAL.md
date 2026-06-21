@@ -91,7 +91,10 @@ Desde la ficha de una organización el super admin puede operar como si fuera or
 
 - Edificios y plantas
 - Layout de plantas
+- **Consulta** de puestos (transversal por edificio)
 - Gestión de viewers
+
+En el header, el enlace **Consulta** aparece solo cuando navega **dentro del contexto** de una organización (`/admin/organizations/{id}/…`).
 
 ---
 
@@ -184,7 +187,7 @@ Cada cambio relevante en un puesto genera un registro de historial con:
 
 ---
 
-## 7. Viewer — Consulta de plantas
+## 7. Viewer — Mis plantas
 
 ### Entrada al sistema
 
@@ -256,7 +259,52 @@ Modal con árbol edificio → plantas. Guardar reemplaza el conjunto de plantas 
 
 ---
 
-## 9. Catálogos organizacionales
+## 9. Consulta de plantas (org admin / super admin)
+
+Ruta: `/org/consulta` (org admin) o `/admin/organizations/{id}/consulta` (super admin en contexto).
+
+Pantalla de **consulta transversal de puestos** dentro de un edificio. Complementa el layout (planta a planta) con una vista tabular searchable. **No** sustituye la consulta del viewer (sección 7).
+
+### Acceso y navegación
+
+- Enlace **Consulta** en el header (org admin siempre; super admin solo dentro del contexto de una org).
+- Al abrir, muestra capa de carga hasta que la pantalla está lista.
+
+### Flujo de uso
+
+1. **Seleccionar edificio** — botones en la parte superior. Al elegir uno, el sistema carga **todos los puestos de todas las plantas** de ese edificio (una sola carga por edificio).
+2. **Filtrar** — los criterios se aplican **al instante en memoria** (sin nueva llamada al servidor):
+   - Planta (todas o una concreta)
+   - Persona (texto parcial, sin distinguir mayúsculas)
+   - Grupo, Equipo, Empresa (select desde catálogos organizacionales)
+3. **Limpiar** — restablece filtros; mantiene el edificio seleccionado.
+
+### Tabla de resultados
+
+Columnas (ordenables al hacer clic en la cabecera):
+
+| Planta | Puesto | Estado | Grupo | Equipo | Persona | Empresa | Acción |
+|--------|--------|--------|-------|--------|---------|---------|--------|
+
+- **Estado:** Disponible u Ocupado (según si el puesto tiene persona asignada).
+- **Orden por defecto:** Planta (ascendente), luego Puesto (ascendente).
+- **Contador:** muestra cuántos puestos coinciden; si hay filtros activos, indica también el total del edificio (ej. «3 puestos de 45»).
+- **Ver planta** — abre el layout de esa planta (con capa de carga al navegar).
+
+### Comportamiento de la pantalla
+
+- Título, filtros y barra **Resultados** permanecen fijos; **solo la tabla** hace scroll cuando hay muchos registros.
+- Cabeceras de columnas visibles al desplazarse dentro de la tabla.
+- Sin edificio seleccionado: mensaje «Selecciona un edificio para ver sus puestos».
+
+### Permisos
+
+- Solo **org admin** y **super admin** (con contexto de org).
+- **Viewer** no tiene acceso a esta pantalla.
+
+---
+
+## 10. Catálogos organizacionales
 
 Por organización se mantienen listas de valores usados en asignaciones:
 
@@ -264,11 +312,11 @@ Por organización se mantienen listas de valores usados en asignaciones:
 - **Equipo**
 - **Empresa**
 
-Se alimentan automáticamente al asignar puestos. Facilitan la reutilización de valores en el editor de layout.
+Se alimentan automáticamente al asignar puestos. Facilitan la reutilización de valores en el editor de layout y en los filtros de **Consulta**.
 
 ---
 
-## 10. Modelo de eliminación (borrado lógico)
+## 11. Modelo de eliminación (borrado lógico)
 
 | Entidad | Al eliminar |
 |---------|-------------|
@@ -281,18 +329,33 @@ Los usuarios inactivos no pueden iniciar sesión.
 
 ---
 
-## 11. Notificaciones en UI
+## 12. Notificaciones y feedback en UI
 
-- **Toasts** breves (2 s por defecto) para acciones exitosas o errores en gestión de viewers.
-- **Diálogos de confirmación** para acciones destructivas (eliminar edificio, planta, viewer).
+### Toasts
+
+- Mensajes breves (2 s por defecto) para acciones exitosas o errores (p. ej. gestión de viewers).
+
+### Capas de carga (`LoadingOverlay`)
+
+- Operaciones async relevantes: guardar, crear, eliminar, cargar edificio en Consulta, navegación desde **Gestionar**, **Ver planta** y enlace **Consulta** del header.
+
+### Diálogos de confirmación
+
+- Acciones destructivas (eliminar edificio, planta, viewer): modal con **Aplicar** / **Cancelar** (no `window.confirm`).
+
+### Contraste y legibilidad
+
+- Interfaz en tema oscuro con tokens de contraste mejorados (bordes, campos, tarjetas) para lectura prolongada en pantallas de administración.
 
 ---
 
-## 12. Fuera de alcance / pendiente
+## 13. Fuera de alcance / pendiente
 
 Funcionalidad mencionada o prevista pero **no implementada** aún:
 
-- Exportación a **Excel** o **PDF**
+- **Consulta fase 2:** resaltar puesto(s) en el layout al abrir desde la tabla («Ver planta» con foco en el puesto filtrado)
+- Exportación a **Excel**, **PDF** o **CSV** (desde Consulta o reportes)
+- Consulta transversal para **viewers** (limitada a sus plantas asignadas)
 - Historial o auditoría de **viewers**
 - Recuperación automática de permisos al reactivar un viewer eliminado
 - Gestión self-service de perfil de usuario
@@ -300,7 +363,7 @@ Funcionalidad mencionada o prevista pero **no implementada** aún:
 
 ---
 
-## 13. Glosario
+## 14. Glosario
 
 | Término | Significado |
 |---------|-------------|
@@ -308,13 +371,15 @@ Funcionalidad mencionada o prevista pero **no implementada** aún:
 | **Puesto** | Posición individual asignable a una persona en el layout |
 | **Sala** | Espacio de reunión con capacidad y flag de medios |
 | **Viewer** | Usuario de solo lectura con acceso limitado por planta |
+| **Consulta** | Pantalla tabular de puestos por edificio, con filtros combinables (solo org admin / super admin) |
 | **Org admin** | Administrador de una organización cliente |
 | **Super admin** | Administrador de la plataforma Xpaces |
 
 ---
 
-## 14. Changelog del documento
+## 15. Changelog del documento
 
 | Fecha | Cambio |
 |-------|--------|
+| 2026-06 | Consulta de plantas (fase 1): filtros en memoria, tabla ordenable, scroll contenido; viewers por planta; toasts; coordenadas en espacio imagen; mejoras de contraste UX |
 | 2026-06 | Versión inicial: roles, orgs, edificios, plantas, layout, viewers, catálogos, historial de puestos |

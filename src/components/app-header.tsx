@@ -47,11 +47,21 @@ export function AppHeader({ user }: AppHeaderProps) {
       label: "Consulta",
       loadingMessage: "Abriendo consulta…",
     });
+    links.push({
+      href: `/admin/organizations/${adminOrgId}/informe`,
+      label: "Informe",
+      loadingMessage: "Abriendo informe…",
+    });
   } else if (isOrgAdmin(user.roles)) {
     links.push({
       href: "/org/consulta",
       label: "Consulta",
       loadingMessage: "Abriendo consulta…",
+    });
+    links.push({
+      href: "/org/informe",
+      label: "Informe",
+      loadingMessage: "Abriendo informe…",
     });
   }
 

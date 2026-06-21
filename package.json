@@ -12,6 +12,9 @@
   "dependencies": {
     "@clerk/nextjs": "^6.22.0",
     "cloudinary": "^2.6.1",
+    "exceljs": "^4.4.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "mongoose": "^8.15.1",
     "next": "^15.3.3",
     "react": "^19.1.0",
