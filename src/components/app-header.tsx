@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { LoadingLink } from "@/components/loading-link";
 import { usePageHeaderTitleValue } from "@/components/page-header-title";
 import { UserMenu } from "@/components/user-menu";
 import { isOrgAdmin, isSuperAdmin, isViewer } from "@/lib/roles";
@@ -13,6 +14,12 @@ type AppHeaderProps = {
   user: XpacesUser;
 };
 
+type NavLink = {
+  href: string;
+  label: string;
+  loadingMessage?: string;
+};
+
 export function AppHeader({ user }: AppHeaderProps) {
   const pathname = usePathname();
   const pageTitle = usePageHeaderTitleValue();
@@ -20,9 +27,11 @@ export function AppHeader({ user }: AppHeaderProps) {
     isViewer(user.roles) && !isOrgAdmin(user.roles) && !isSuperAdmin(user.roles);
   const homeHref = isViewerOnly ? "/org/plantas" : "/dashboard";
 
-  const links = isViewerOnly
+  const links: NavLink[] = isViewerOnly
     ? [{ href: "/org/plantas", label: "Plantas" }]
     : [{ href: "/dashboard", label: "Panel" }];
+
+  const adminOrgId = pathname.match(/^\/admin\/organizations\/([^/]+)/)?.[1];
 
   if (isSuperAdmin(user.roles)) {
     links.push({ href: "/admin/organizations", label: "Organizaciones" });
@@ -30,6 +39,23 @@ export function AppHeader({ user }: AppHeaderProps) {
 
   if (isOrgAdmin(user.roles)) {
     links.push({ href: "/org/buildings", label: "Edificios" });
+  }
+
+  if (isSuperAdmin(user.roles) && adminOrgId) {
+    links.push({
+      href: `/admin/organizations/${adminOrgId}/consulta`,
+      label: "Consulta",
+      loadingMessage: "Abriendo consulta…",
+    });
+  } else if (isOrgAdmin(user.roles)) {
+    links.push({
+      href: "/org/consulta",
+      label: "Consulta",
+      loadingMessage: "Abriendo consulta…",
+    });
+  }
+
+  if (isOrgAdmin(user.roles)) {
     links.push({ href: "/org/viewers", label: "Viewers" });
   }
 
@@ -46,15 +72,26 @@ export function AppHeader({ user }: AppHeaderProps) {
         <div className="flex min-w-0 items-center gap-8">
           <BrandLogo href={homeHref} />
           <nav className="hidden gap-5 text-sm sm:flex">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`nav-link pb-0.5 ${isNavActive(link.href) ? "nav-link-active" : ""}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const className = `nav-link pb-0.5 ${isNavActive(link.href) ? "nav-link-active" : ""}`;
+              if (link.loadingMessage && !isNavActive(link.href)) {
+                return (
+                  <LoadingLink
+                    key={link.href}
+                    href={link.href}
+                    message={link.loadingMessage}
+                    className={className}
+                  >
+                    {link.label}
+                  </LoadingLink>
+                );
+              }
+              return (
+                <Link key={link.href} href={link.href} className={className}>
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         <div className="flex min-w-0 items-center gap-4">
