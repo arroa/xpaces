@@ -69,4 +69,85 @@ body {
     background: var(--besharpx-glow);
     border-color: rgba(251, 191, 36, 0.6);
   }
+
+  .farewell-backdrop {
+    animation: farewell-backdrop-in 0.35s ease-out forwards;
+  }
+
+  .farewell-modal {
+    display: flex;
+    width: min(30vw, 22rem);
+    min-width: 16rem;
+    height: 30vh;
+    min-height: 14rem;
+    box-sizing: border-box;
+    animation:
+      farewell-modal-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+      farewell-modal-glow 1.8s ease-in-out 0.4s infinite;
+  }
+
+  .farewell-modal-body {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1.5rem 1rem;
+    text-align: center;
+  }
+
+  .farewell-modal-title {
+    animation: farewell-text-in 0.5s ease-out 0.2s both;
+  }
+
+  .farewell-modal-sub {
+    animation: farewell-text-in 0.5s ease-out 0.35s both;
+  }
+}
+
+@keyframes farewell-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes farewell-modal-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes farewell-modal-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(251, 191, 36, 0.45),
+      0 0 48px rgba(251, 191, 36, 0.25),
+      0 24px 64px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px rgba(251, 191, 36, 0.75),
+      0 0 72px rgba(251, 191, 36, 0.4),
+      0 24px 64px rgba(0, 0, 0, 0.6);
+  }
+}
+
+@keyframes farewell-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

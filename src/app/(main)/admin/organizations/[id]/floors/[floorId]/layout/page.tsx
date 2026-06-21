@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { FloorLayoutEditor } from "@/components/floor-layout-editor";
+import { loadFloorLayoutData } from "@/lib/floor-layout-data";
 import { connectMongo } from "@/lib/mongodb";
 import { isSuperAdmin } from "@/lib/roles";
 import { requireCurrentXpacesUser } from "@/lib/xpaces-user";
@@ -25,9 +26,14 @@ export default async function AdminOrganizationFloorLayoutPage({ params }: PageP
     notFound();
   }
 
+  const initialData = await loadFloorLayoutData(id, floorId, user);
+  if (!initialData) {
+    notFound();
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <FloorLayoutEditor floorId={floorId} organizationId={id} />
+      <FloorLayoutEditor floorId={floorId} organizationId={id} initialData={initialData} />
     </div>
   );
 }

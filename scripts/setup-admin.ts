@@ -5,7 +5,6 @@ config({ path: resolve(process.cwd(), ".env.local") });
 config({ path: resolve(process.cwd(), ".env") });
 
 import { ensureClerkUser, formatClerkError, normalizeEmail } from "../src/lib/clerk-users";
-import { isDevBypassEnabled } from "../src/lib/dev-flags";
 import { ROLE_SUPER_ADMIN } from "../src/lib/roles";
 import { connectMongo } from "../src/lib/mongodb";
 import { UserModel } from "../src/models/user";
@@ -18,12 +17,8 @@ async function setupAdmin() {
 
   const email = normalizeEmail(rawEmail);
 
-  if (isDevBypassEnabled()) {
-    console.log("→ Modo dev (XSPACES_DEV_BYPASS): omitiendo Clerk…");
-  } else {
-    console.log("→ Sincronizando identidad en Clerk…");
-  }
-  const clerkUserId = await ensureClerkUser(email);
+  console.log("→ Sincronizando identidad en Clerk…");
+  const clerkUserId = await ensureClerkUser(email, { forceClerk: true });
   console.log("  Identidad OK:", clerkUserId);
 
   await connectMongo();
@@ -45,11 +40,7 @@ async function setupAdmin() {
   console.log("  email:", user.email);
   console.log("  roles:", user.roles.join(", "));
   console.log("");
-  if (isDevBypassEnabled()) {
-    console.log("Listo. Inicia sesión en /sign-in con ese email (sin OTP en dev).");
-  } else {
-    console.log("Listo. Inicia sesión en /sign-in con ese email (OTP de Clerk).");
-  }
+  console.log("Listo. Inicia sesión en /sign-in con ese email (OTP de Clerk).");
 
   process.exit(0);
 }

@@ -27,10 +27,18 @@ export function makeDevClerkUserId(email: string): string {
   return `dev:${normalizeEmail(email)}`;
 }
 
-export async function ensureClerkUser(email: string): Promise<string> {
+type EnsureClerkUserOptions = {
+  /** Siempre sincroniza con Clerk (p. ej. setup:admin), sin mirar XSPACES_DEV_BYPASS. */
+  forceClerk?: boolean;
+};
+
+export async function ensureClerkUser(
+  email: string,
+  options: EnsureClerkUserOptions = {},
+): Promise<string> {
   const normalized = normalizeEmail(email);
 
-  if (isDevBypassEnabled()) {
+  if (!options.forceClerk && isDevBypassEnabled()) {
     return makeDevClerkUserId(normalized);
   }
 

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CatalogInput } from "@/components/catalog-input";
 import { usePageHeaderTitle } from "@/components/page-header-title";
+import type { FloorLayoutData } from "@/lib/floor-layout-data";
 import { withOrgContext } from "@/lib/org-api-client";
 
 type Position = { x: number; y: number };
@@ -34,14 +35,7 @@ type Catalogs = {
   empresa: string[];
 };
 
-type LayoutData = {
-  floor: { id: string; name: string; imageUrl: string; buildingId: string };
-  building: { id: string; name: string };
-  seats: Seat[];
-  rooms: Room[];
-  catalogs: Catalogs;
-  canWrite: boolean;
-};
+type LayoutData = FloorLayoutData;
 
 type DragPayload =
   | { kind: "seat"; id: string; code: string }
@@ -50,6 +44,7 @@ type DragPayload =
 type FloorLayoutEditorProps = {
   floorId: string;
   organizationId?: string;
+  initialData?: LayoutData;
 };
 
 function clampPercent(value: number) {
@@ -70,13 +65,70 @@ function isSeatOccupied(seat: Seat) {
   return seat.estado === "ocupado" || Boolean(seat.persona.trim());
 }
 
+function OccupiedSeatTooltip({ seat }: { seat: Seat }) {
+  if (!isSeatOccupied(seat)) {
+    return null;
+  }
+
+  const details = [
+    { label: "Grupo", value: seat.grupo.trim() },
+    { label: "Equipo", value: seat.equipo.trim() },
+    { label: "Empresa", value: seat.empresa.trim() },
+  ].filter((item) => item.value.length > 0);
+
+  return (
+    <span
+      role="tooltip"
+      className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-30 w-max max-w-[200px] -translate-x-1/2 rounded-lg border border-[var(--border)] bg-[#171717]/95 px-2 py-1.5 text-left opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+    >
+      <span className="block text-[11px] font-semibold leading-tight text-[var(--besharpx-amber)]">
+        {seat.persona.trim()}
+      </span>
+      {details.map((item) => (
+        <span key={item.label} className="mt-0.5 block text-[10px] leading-tight text-white/85">
+          {item.label}: {item.value}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function PlantedRoomTooltip({ room }: { room: Room }) {
+  return (
+    <span
+      role="tooltip"
+      className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-30 w-max max-w-[200px] -translate-x-1/2 rounded-lg border border-[var(--border)] bg-[#171717]/95 px-2 py-1.5 text-left opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+    >
+      <span className="block text-[11px] font-semibold leading-tight text-sky-300">
+        Sala {room.code}
+      </span>
+      <span className="mt-0.5 block text-[10px] leading-tight text-white/85">
+        Capacidad: {room.capacidad} puestos
+      </span>
+      <span className="mt-0.5 block text-[10px] leading-tight text-white/85">
+        Medios: {room.medios ? "Sí" : "No"}
+      </span>
+    </span>
+  );
+}
+
+const MOVE_DRAG_THRESHOLD_PX = 4;
+
 export function FloorLayoutEditor({
   floorId,
   organizationId,
+  initialData,
 }: FloorLayoutEditorProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<LayoutData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const moveSessionRef = useRef<{
+    pointerId: number;
+    target: HTMLElement;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
+  const [data, setData] = useState<LayoutData | null>(initialData ?? null);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
   const [selectedSeatId, setSelectedSeatId] = useState<string | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -104,8 +156,11 @@ export function FloorLayoutEditor({
   }, [floorId, organizationId]);
 
   useEffect(() => {
+    if (initialData) {
+      return;
+    }
     void loadLayout();
-  }, [loadLayout]);
+  }, [initialData, loadLayout]);
 
   const selectedSeat = useMemo(
     () => data?.seats.find((seat) => seat.id === selectedSeatId) ?? null,
@@ -282,12 +337,32 @@ export function FloorLayoutEditor({
     if (!data?.canWrite) return;
     event.preventDefault();
     event.stopPropagation();
+    const target = event.currentTarget as HTMLElement;
+    moveSessionRef.current = {
+      pointerId: event.pointerId,
+      target,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
     setMovingId(`${kind}:${id}`);
-    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    target.setPointerCapture(event.pointerId);
   }
 
   async function handlePointerMove(event: React.PointerEvent) {
     if (!movingId || !data?.canWrite) return;
+    const session = moveSessionRef.current;
+    if (!session) return;
+
+    if (!session.moved) {
+      const dx = event.clientX - session.startX;
+      const dy = event.clientY - session.startY;
+      if (Math.hypot(dx, dy) < MOVE_DRAG_THRESHOLD_PX) {
+        return;
+      }
+      session.moved = true;
+    }
+
     const position = getPositionFromPointer(event.clientX, event.clientY);
     if (!position) return;
     const [kind, id] = movingId.split(":");
@@ -300,9 +375,20 @@ export function FloorLayoutEditor({
 
   async function handlePointerUp(event: React.PointerEvent) {
     if (!movingId || !data?.canWrite) return;
+    const session = moveSessionRef.current;
     const [kind, id] = movingId.split(":");
-    const position = getPositionFromPointer(event.clientX, event.clientY);
     setMovingId(null);
+    moveSessionRef.current = null;
+
+    if (session?.target.hasPointerCapture(session.pointerId)) {
+      session.target.releasePointerCapture(session.pointerId);
+    }
+
+    if (!session?.moved) {
+      return;
+    }
+
+    const position = getPositionFromPointer(event.clientX, event.clientY);
     if (!position) return;
     try {
       if (kind === "seat") {
@@ -653,7 +739,7 @@ export function FloorLayoutEditor({
 
           <section
             ref={canvasRef}
-            className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40"
+            className="relative min-h-0 flex-1 overflow-visible rounded-2xl border border-[var(--border)] bg-black/40"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => void handleCanvasDrop(e)}
             onPointerMove={(e) => void handlePointerMove(e)}
@@ -679,15 +765,16 @@ export function FloorLayoutEditor({
                   left: `${seat.position!.x}%`,
                   top: `${seat.position!.y}%`,
                 }}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 px-2 py-1 text-xs font-bold shadow-lg ${
+                className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border p-0 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
                   selectedSeatId === seat.id
-                    ? "border-white bg-[var(--besharpx-amber)] text-[#171717] ring-2 ring-white/70"
+                    ? "border-white bg-[var(--besharpx-amber)] text-[#171717] ring-white/70"
                     : isSeatOccupied(seat)
                       ? "border-[var(--besharpx-amber)] bg-[var(--besharpx-amber)]/90 text-[#171717]"
                       : "border-[var(--besharpx-amber)]/60 bg-[#171717]/90 text-[var(--besharpx-amber)]"
                 }`}
               >
                 {seat.code}
+                <OccupiedSeatTooltip seat={seat} />
               </button>
             ))}
             {placedRooms.map((room) => (
@@ -700,13 +787,14 @@ export function FloorLayoutEditor({
                   left: `${room.position!.x}%`,
                   top: `${room.position!.y}%`,
                 }}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-md border-2 px-2 py-1 text-xs font-bold shadow-lg ${
+                className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded border px-0.5 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
                   selectedRoomId === room.id
-                    ? "border-white bg-sky-400 text-[#171717] ring-2 ring-white/70"
+                    ? "border-white bg-sky-400 text-[#171717] ring-white/70"
                     : "border-sky-400/70 bg-[#171717]/90 text-sky-300"
                 }`}
               >
                 {room.code}
+                <PlantedRoomTooltip room={room} />
               </button>
             ))}
           </div>

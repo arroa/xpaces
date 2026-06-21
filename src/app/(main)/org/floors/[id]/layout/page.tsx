@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { FloorLayoutEditor } from "@/components/floor-layout-editor";
+import { loadFloorLayoutData } from "@/lib/floor-layout-data";
 import { isOrgAdmin, isSuperAdmin, isViewer } from "@/lib/roles";
 import { requireCurrentXpacesUser } from "@/lib/xpaces-user";
 
@@ -20,9 +21,14 @@ export default async function FloorLayoutPage({ params }: PageProps) {
     redirect("/dashboard");
   }
 
+  const initialData = await loadFloorLayoutData(user.organizationId, id, user);
+  if (!initialData) {
+    notFound();
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <FloorLayoutEditor floorId={id} />
+      <FloorLayoutEditor floorId={id} initialData={initialData} />
     </div>
   );
 }
