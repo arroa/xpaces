@@ -116,7 +116,7 @@ Cada planta pertenece a un edificio y define:
 |-------|-------------|
 | Nombre | Identificador de la planta |
 | Imagen | Plano subido a Cloudinary (con recorte opcional) |
-| Total puestos | Entre 1 y 99 |
+| Total puestos | Entre 1 y 150 |
 | Total salas | Entre 0 y 99 |
 
 Al crear (o al cambiar totales) el sistema **genera automáticamente** los puestos (`P01`, `P02`…) y salas (`S01`, `S02`…) sin posición en el plano.

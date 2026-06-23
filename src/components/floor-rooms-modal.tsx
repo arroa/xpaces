@@ -14,7 +14,7 @@ type Room = {
 };
 
 type RoomDraft = {
-  capacidad: number;
+  capacidad: string;
   medios: boolean;
 };
 
@@ -59,7 +59,7 @@ export function FloorRoomsModal({
         Object.fromEntries(
           nextRooms.map((room) => [
             room.id,
-            { capacidad: room.capacidad, medios: room.medios },
+            { capacidad: String(room.capacidad), medios: room.medios },
           ]),
         ),
       );
@@ -80,6 +80,23 @@ export function FloorRoomsModal({
     }));
   }
 
+  function parseCapacidad(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 999) {
+      return null;
+    }
+    return parsed;
+  }
+
+  function normalizeCapacidadInput(value: string) {
+    const parsed = parseCapacidad(value);
+    return parsed == null ? value.trim() : String(parsed);
+  }
+
   async function handleSaveRooms() {
     if (!canWrite) {
       return;
@@ -92,7 +109,8 @@ export function FloorRoomsModal({
     try {
       const changedRooms = rooms.filter((room) => {
         const draft = drafts[room.id];
-        return draft.capacidad !== room.capacidad || draft.medios !== room.medios;
+        const capacidad = parseCapacidad(draft.capacidad);
+        return capacidad !== room.capacidad || draft.medios !== room.medios;
       });
 
       if (changedRooms.length === 0) {
@@ -102,13 +120,17 @@ export function FloorRoomsModal({
 
       for (const room of changedRooms) {
         const draft = drafts[room.id];
+        const capacidad = parseCapacidad(draft.capacidad);
+        if (capacidad == null) {
+          throw new Error(`Indica una capacidad válida para la sala ${room.code}`);
+        }
         const res = await fetch(
           `/api/rooms/${room.id}`,
           withOrgContext(organizationId, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              capacidad: draft.capacidad,
+              capacidad,
               medios: draft.medios,
             }),
           }),
@@ -119,8 +141,7 @@ export function FloorRoomsModal({
         }
       }
 
-      setMessage("Salas actualizadas.");
-      await loadRooms();
+      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar las salas");
     } finally {
@@ -134,7 +155,8 @@ export function FloorRoomsModal({
 
   const hasRoomChanges = rooms.some((room) => {
     const draft = drafts[room.id];
-    return draft.capacidad !== room.capacidad || draft.medios !== room.medios;
+    const capacidad = parseCapacidad(draft.capacidad);
+    return capacidad !== room.capacidad || draft.medios !== room.medios;
   });
 
   return (
@@ -194,10 +216,16 @@ export function FloorRoomsModal({
                       type="number"
                       min={1}
                       max={999}
-                      value={draft?.capacidad ?? room.capacidad}
+                      inputMode="numeric"
+                      value={draft?.capacidad ?? String(room.capacidad)}
                       disabled={!canWrite}
-                      onChange={(e) =>
-                        updateDraft(room.id, { capacidad: Number(e.target.value) })
+                      onChange={(event) =>
+                        updateDraft(room.id, { capacidad: event.target.value })
+                      }
+                      onBlur={(event) =>
+                        updateDraft(room.id, {
+                          capacidad: normalizeCapacidadInput(event.target.value),
+                        })
                       }
                       className="mt-1 w-full rounded-xl input-field px-4 py-2.5 disabled:opacity-60"
                     />

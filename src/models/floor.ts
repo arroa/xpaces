@@ -7,7 +7,7 @@ const floorSchema = new Schema(
     name: { type: String, required: true, trim: true },
     imageUrl: { type: String, default: "" },
     imagePublicId: { type: String, default: "" },
-    totalSeats: { type: Number, required: true, min: 1, max: 99 },
+    totalSeats: { type: Number, required: true, min: 1, max: 150 },
     totalRooms: { type: Number, required: true, min: 0, max: 99 },
     active: { type: Boolean, required: true, default: true },
     layoutPositionSpace: {

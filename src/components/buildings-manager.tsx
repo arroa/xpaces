@@ -9,6 +9,7 @@ import { useConfirm } from "@/components/confirm-provider";
 import { LoadingLink } from "@/components/loading-link";
 import { LoadingOverlay } from "@/components/loading-overlay";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FLOOR_MAX_ROOMS, FLOOR_MAX_SEATS } from "@/lib/floor-limits";
 import { withOrgContext } from "@/lib/org-api-client";
 
 type Building = {
@@ -567,11 +568,11 @@ export function BuildingsManager({
               </label>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="text-xs text-[var(--muted)]">Puestos (01–99)</span>
+                  <span className="text-xs text-[var(--muted)]">Puestos (01–{FLOOR_MAX_SEATS})</span>
                   <input
                     type="number"
                     min={1}
-                    max={99}
+                    max={FLOOR_MAX_SEATS}
                     required
                     value={totalSeats}
                     onChange={(e) => setTotalSeats(Number(e.target.value))}
@@ -583,7 +584,7 @@ export function BuildingsManager({
                   <input
                     type="number"
                     min={0}
-                    max={99}
+                    max={FLOOR_MAX_ROOMS}
                     required
                     value={totalRooms}
                     onChange={(e) => setTotalRooms(Number(e.target.value))}

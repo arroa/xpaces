@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { deleteCloudinaryImage, uploadFloorImage } from "@/lib/cloudinary-upload";
+import { FLOOR_MAX_ROOMS, FLOOR_MAX_SEATS } from "@/lib/floor-limits";
 import { cascadeDeleteFloorData } from "@/lib/floor-deletion";
 import { requireApiOrgMember, requireApiOrgMemberWrite } from "@/lib/org-access";
 import { replaceFloorSpaces, serializeFloor } from "@/lib/floor-spaces";
@@ -10,8 +11,8 @@ import { FloorModel, type FloorDocument } from "@/models/floor";
 
 const updateSchema = z.object({
   name: z.string().min(1).max(120).optional(),
-  totalSeats: z.number().int().min(1).max(99).optional(),
-  totalRooms: z.number().int().min(0).max(99).optional(),
+  totalSeats: z.number().int().min(1).max(FLOOR_MAX_SEATS).optional(),
+  totalRooms: z.number().int().min(0).max(FLOOR_MAX_ROOMS).optional(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -69,7 +70,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     if (totalSeatsRaw != null && totalSeatsRaw !== "") {
       const totalSeats = Number(totalSeatsRaw);
-      if (Number.isInteger(totalSeats) && totalSeats >= 1 && totalSeats <= 99) {
+      if (Number.isInteger(totalSeats) && totalSeats >= 1 && totalSeats <= FLOOR_MAX_SEATS) {
         if (totalSeats !== floor.totalSeats) {
           floor.totalSeats = totalSeats;
           await replaceFloorSpaces({
@@ -83,7 +84,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     if (totalRoomsRaw != null && totalRoomsRaw !== "") {
       const totalRooms = Number(totalRoomsRaw);
-      if (Number.isInteger(totalRooms) && totalRooms >= 0 && totalRooms <= 99) {
+      if (Number.isInteger(totalRooms) && totalRooms >= 0 && totalRooms <= FLOOR_MAX_ROOMS) {
         if (totalRooms !== floor.totalRooms) {
           floor.totalRooms = totalRooms;
           await replaceFloorSpaces({

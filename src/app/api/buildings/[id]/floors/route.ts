@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { uploadFloorImage } from "@/lib/cloudinary-upload";
+import { FLOOR_MAX_ROOMS, FLOOR_MAX_SEATS } from "@/lib/floor-limits";
 import { requireApiOrgMember, requireApiOrgMemberWrite } from "@/lib/org-access";
 import { provisionFloorSpaces, serializeFloor } from "@/lib/floor-spaces";
 import { connectMongo } from "@/lib/mongodb";
@@ -15,8 +16,8 @@ import { SeatModel } from "@/models/seat";
 
 const createSchema = z.object({
   name: z.string().min(1).max(120),
-  totalSeats: z.number().int().min(1).max(99),
-  totalRooms: z.number().int().min(0).max(99),
+  totalSeats: z.number().int().min(1).max(FLOOR_MAX_SEATS),
+  totalRooms: z.number().int().min(0).max(FLOOR_MAX_ROOMS),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };

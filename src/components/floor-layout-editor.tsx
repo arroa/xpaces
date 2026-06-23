@@ -12,6 +12,10 @@ import {
   toImageSpacePosition,
   type PlanPosition,
 } from "@/lib/floor-plan-frame";
+import {
+  floatingPanelColumnCount,
+  floatingPanelWidthClass,
+} from "@/lib/floor-limits";
 import { withOrgContext } from "@/lib/org-api-client";
 
 type Position = PlanPosition;
@@ -628,6 +632,8 @@ export function FloorLayoutEditor({
   const placedSeats = data.seats.filter((seat) => seat.position);
   const placedRooms = data.rooms.filter((room) => room.position);
   const seatOccupied = selectedSeat ? isSeatOccupied(selectedSeat) : false;
+  const floatingColumns = floatingPanelColumnCount(data.floor.totalSeats);
+  const floatingAsideClass = floatingPanelWidthClass(data.floor.totalSeats);
 
   return (
     <div className="flex h-[calc(100dvh-var(--app-header-h)-var(--app-main-py))] flex-col overflow-hidden">
@@ -639,11 +645,17 @@ export function FloorLayoutEditor({
 
       <div className="flex min-h-0 flex-1 gap-3 overflow-hidden">
         {data.canWrite && (
-          <aside className="card-executive flex w-[6.25rem] shrink-0 flex-col overflow-hidden rounded-2xl p-2">
+          <aside
+            className={`card-executive flex ${floatingAsideClass} shrink-0 flex-col overflow-hidden rounded-2xl p-2`}
+          >
             <p className="mb-1.5 shrink-0 text-center text-[10px] font-medium uppercase tracking-wide text-[var(--muted)]">
               Flotantes
             </p>
-            <div className="grid min-h-0 flex-1 grid-cols-2 gap-1 overflow-y-auto content-start">
+            <div
+              className={`grid min-h-0 flex-1 gap-1 overflow-y-auto content-start ${
+                floatingColumns === 3 ? "grid-cols-3" : "grid-cols-2"
+              }`}
+            >
               {floatingItems.map((item) => (
                 <button
                   key={`${item.kind}-${item.id}`}
