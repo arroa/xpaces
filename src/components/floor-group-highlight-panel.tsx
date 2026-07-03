@@ -55,6 +55,9 @@ export function FloorGroupHighlightPanel({
     if (event.button !== 0) {
       return;
     }
+    if ((event.target as HTMLElement).closest("button")) {
+      return;
+    }
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -118,7 +121,11 @@ export function FloorGroupHighlightPanel({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+            }}
             className="shrink-0 rounded-lg px-2 py-1 text-sm text-[var(--muted)] transition hover:bg-[var(--field)] hover:text-[var(--foreground)]"
             aria-label="Cerrar"
           >
