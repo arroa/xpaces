@@ -4,6 +4,11 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CatalogInput } from "@/components/catalog-input";
+import {
+  FloorGroupHighlightPanel,
+  IlluminateToggleButton,
+} from "@/components/floor-group-highlight-panel";
+import { LoadingOverlay } from "@/components/loading-overlay";
 import { usePageHeaderTitle } from "@/components/page-header-title";
 import type { FloorLayoutData } from "@/lib/floor-layout-data";
 import {
@@ -12,6 +17,11 @@ import {
   toImageSpacePosition,
   type PlanPosition,
 } from "@/lib/floor-plan-frame";
+import {
+  buildGroupColorMap,
+  listPlantedSeatEquipos,
+  resolveGroupHighlightStyle,
+} from "@/lib/floor-group-highlight";
 import {
   floatingPanelColumnCount,
   floatingPanelWidthClass,
@@ -141,6 +151,9 @@ export function FloorLayoutEditor({
   const [formEmpresa, setFormEmpresa] = useState("");
   const [formPersona, setFormPersona] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingMessage, setSavingMessage] = useState("Guardando puesto…");
+  const [illuminateOpen, setIlluminateOpen] = useState(false);
+  const [highlightedEquipos, setHighlightedEquipos] = useState<Set<string>>(() => new Set());
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [migratingLayout, setMigratingLayout] = useState(
@@ -178,6 +191,8 @@ export function FloorLayoutEditor({
     setMigratingLayout(
       Boolean(data?.canWrite && data?.floor.layoutPositionSpace === "container"),
     );
+    setIlluminateOpen(false);
+    setHighlightedEquipos(new Set());
   }, [floorId]);
 
   useEffect(() => {
@@ -348,6 +363,16 @@ export function FloorLayoutEditor({
     () => flattenFloatingItems(unplacedSeats, unplacedRooms),
     [unplacedSeats, unplacedRooms],
   );
+
+  const plantedSeatEquipos = useMemo(
+    () => listPlantedSeatEquipos(data?.seats ?? []),
+    [data?.seats],
+  );
+  const groupColorMap = useMemo(
+    () => buildGroupColorMap(plantedSeatEquipos),
+    [plantedSeatEquipos],
+  );
+  const isEquipoHighlightActive = highlightedEquipos.size > 0;
 
   usePageHeaderTitle(
     data ? `Asignar puestos: ${data.floor.name}-${data.building.name}` : null,
@@ -554,16 +579,53 @@ export function FloorLayoutEditor({
     }
   }
 
+  function clearSeatSelection() {
+    setSelectedSeatId(null);
+    setFormGrupo("");
+    setFormEquipo("");
+    setFormEmpresa("");
+    setFormPersona("");
+  }
+
+  function clearMapSelection() {
+    if (!selectedSeatId && !selectedRoomId) {
+      return;
+    }
+    clearSeatSelection();
+    setSelectedRoomId(null);
+  }
+
+  function closeIlluminatePanel() {
+    setIlluminateOpen(false);
+    setHighlightedEquipos(new Set());
+  }
+
+  function toggleIlluminatePanel() {
+    if (illuminateOpen || highlightedEquipos.size > 0) {
+      closeIlluminatePanel();
+      return;
+    }
+    setIlluminateOpen(true);
+  }
+
+  function toggleHighlightedEquipo(equipo: string) {
+    setHighlightedEquipos((current) => {
+      const next = new Set(current);
+      if (next.has(equipo)) {
+        next.delete(equipo);
+      } else {
+        next.add(equipo);
+      }
+      return next;
+    });
+  }
+
   async function handleRemoveFromMap(kind: "seat" | "room", id: string) {
     if (!data?.canWrite) return;
     try {
       if (kind === "seat") {
         await saveSeat(id, { position: null });
-        setSelectedSeatId(null);
-        setFormGrupo("");
-        setFormEquipo("");
-        setFormEmpresa("");
-        setFormPersona("");
+        clearSeatSelection();
       } else {
         await saveRoom(id, { position: null });
         setSelectedRoomId(null);
@@ -580,6 +642,7 @@ export function FloorLayoutEditor({
       return;
     }
 
+    setSavingMessage("Guardando puesto…");
     setSaving(true);
     setError("");
     try {
@@ -589,6 +652,7 @@ export function FloorLayoutEditor({
         empresa: formEmpresa,
         persona: formPersona,
       });
+      clearSeatSelection();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al asignar");
     } finally {
@@ -599,21 +663,17 @@ export function FloorLayoutEditor({
   async function handleReleaseSeat() {
     if (!selectedSeat || !data?.canWrite) return;
 
+    setSavingMessage("Liberando puesto…");
     setSaving(true);
     setError("");
     try {
       await saveSeat(selectedSeat.id, {
-        position: null,
         grupo: "",
         equipo: "",
         empresa: "",
         persona: "",
       });
-      setSelectedSeatId(null);
-      setFormGrupo("");
-      setFormEquipo("");
-      setFormEmpresa("");
-      setFormPersona("");
+      clearSeatSelection();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al liberar");
     } finally {
@@ -632,11 +692,19 @@ export function FloorLayoutEditor({
   const placedSeats = data.seats.filter((seat) => seat.position);
   const placedRooms = data.rooms.filter((room) => room.position);
   const seatOccupied = selectedSeat ? isSeatOccupied(selectedSeat) : false;
+  const hasSeatFormChanges = selectedSeat
+    ? formGrupo.trim() !== selectedSeat.grupo.trim() ||
+      formEquipo.trim() !== selectedSeat.equipo.trim() ||
+      formEmpresa.trim() !== selectedSeat.empresa.trim() ||
+      formPersona.trim() !== selectedSeat.persona.trim()
+    : false;
+  const canSaveSeatAssignment = Boolean(formPersona.trim()) && hasSeatFormChanges;
   const floatingColumns = floatingPanelColumnCount(data.floor.totalSeats);
   const floatingAsideClass = floatingPanelWidthClass(data.floor.totalSeats);
 
   return (
-    <div className="flex h-[calc(100dvh-var(--app-header-h)-var(--app-main-py))] flex-col overflow-hidden">
+    <div className="relative flex h-[calc(100dvh-var(--app-header-h)-var(--app-main-py))] flex-col overflow-hidden">
+      <LoadingOverlay visible={saving} message={savingMessage} />
       {error && (
         <p className="mb-2 shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
           {error}
@@ -702,7 +770,7 @@ export function FloorLayoutEditor({
                   value={formGrupo}
                   options={data.catalogs.grupo}
                   onChange={setFormGrupo}
-                  disabled={!data.canWrite || seatOccupied}
+                  disabled={!data.canWrite}
                 />
               </div>
               <div className="min-w-[72px] flex-1 basis-0">
@@ -713,7 +781,7 @@ export function FloorLayoutEditor({
                   value={formEquipo}
                   options={data.catalogs.equipo}
                   onChange={setFormEquipo}
-                  disabled={!data.canWrite || seatOccupied}
+                  disabled={!data.canWrite}
                 />
               </div>
               <div className="min-w-[80px] flex-1 basis-0">
@@ -721,7 +789,7 @@ export function FloorLayoutEditor({
                   <span className="text-xs font-medium text-[var(--muted)]">Persona</span>
                   <input
                     value={formPersona}
-                    disabled={!data.canWrite || seatOccupied}
+                    disabled={!data.canWrite}
                     onChange={(e) => setFormPersona(e.target.value)}
                     placeholder="Nombre"
                     className="mt-1 w-full rounded-lg input-field px-2.5 py-2 text-sm disabled:opacity-60"
@@ -736,7 +804,7 @@ export function FloorLayoutEditor({
                   value={formEmpresa}
                   options={data.catalogs.empresa}
                   onChange={setFormEmpresa}
-                  disabled={!data.canWrite || seatOccupied}
+                  disabled={!data.canWrite}
                 />
               </div>
             </>
@@ -853,26 +921,36 @@ export function FloorLayoutEditor({
           )}
           </div>
 
-          <div className="flex w-[148px] shrink-0 justify-end gap-2">
+          <div className="flex shrink-0 justify-end gap-2">
             {selectedSeat && data.canWrite ? (
               seatOccupied ? (
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void handleReleaseSeat()}
-                  className="whitespace-nowrap rounded-lg border border-red-500/30 px-3 py-2 text-sm text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
-                >
-                  {saving ? "…" : "Liberar"}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    disabled={saving || !canSaveSeatAssignment}
+                    onClick={() => void handleAssignSeat()}
+                    className="btn-amber whitespace-nowrap rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void handleReleaseSeat()}
+                    className="whitespace-nowrap rounded-lg border border-red-500/30 px-3 py-2 text-sm text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                  >
+                    Liberar
+                  </button>
+                </>
               ) : (
                 <>
                   <button
                     type="button"
-                    disabled={saving}
+                    disabled={saving || !canSaveSeatAssignment}
                     onClick={() => void handleAssignSeat()}
                     className="btn-amber whitespace-nowrap rounded-lg px-3 py-2 text-sm disabled:opacity-50"
                   >
-                    {saving ? "…" : "Asignar"}
+                    Asignar
                   </button>
                   <button
                     type="button"
@@ -893,6 +971,10 @@ export function FloorLayoutEditor({
                 Quitar
               </button>
             ) : null}
+            <IlluminateToggleButton
+              active={illuminateOpen || isEquipoHighlightActive}
+              onClick={toggleIlluminatePanel}
+            />
           </div>
             </div>
           </section>
@@ -900,6 +982,7 @@ export function FloorLayoutEditor({
           <section
             ref={viewportRef}
             className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-black/40"
+            onClick={clearMapSelection}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => void handleCanvasDrop(e)}
             onPointerMove={(e) => void handlePointerMove(e)}
@@ -936,23 +1019,43 @@ export function FloorLayoutEditor({
                     if (!displayPosition) {
                       return null;
                     }
+                    const isSelected = selectedSeatId === seat.id;
+                    const groupHighlight = resolveGroupHighlightStyle(
+                      seat.equipo,
+                      highlightedEquipos,
+                      groupColorMap,
+                    );
+                    const isDimmed = isEquipoHighlightActive && !groupHighlight;
                     return (
                       <button
                         key={seat.id}
                         type="button"
-                        onClick={() => selectSeat(seat.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          selectSeat(seat.id);
+                        }}
                         onPointerDown={(e) => startMove("seat", seat.id, e)}
                         style={{
                           left: `${displayPosition.x}%`,
                           top: `${displayPosition.y}%`,
+                          ...(groupHighlight && !isSelected
+                            ? {
+                                backgroundColor: groupHighlight.bg,
+                                borderColor: groupHighlight.border,
+                                color: groupHighlight.text,
+                                boxShadow: `0 0 0 2px ${groupHighlight.ring}88`,
+                              }
+                            : undefined),
                         }}
-                        className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border p-0 text-[10px] font-bold leading-none shadow-sm ring-1 ring-transparent ${
-                          selectedSeatId === seat.id
-                            ? "border-white bg-[var(--besharpx-amber)] text-[#171717] ring-white/70"
-                            : isSeatOccupied(seat)
-                              ? "border-[var(--besharpx-amber)] bg-[var(--besharpx-amber)]/90 text-[#171717]"
-                              : "border-[var(--besharpx-amber)]/60 bg-[#171717]/90 text-[var(--besharpx-amber)]"
-                        }`}
+                        className={`group absolute flex h-[22px] min-w-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border p-0 text-[10px] font-bold leading-none shadow-sm ring-1 transition ${
+                          isSelected
+                            ? "border-red-500 bg-white text-[#171717] ring-red-500/60"
+                            : groupHighlight
+                              ? "ring-transparent"
+                              : isSeatOccupied(seat)
+                                ? "border-[var(--besharpx-amber)] bg-[var(--besharpx-amber)]/90 text-[#171717] ring-transparent"
+                                : "border-[var(--besharpx-amber)]/60 bg-[#171717]/90 text-[var(--besharpx-amber)] ring-transparent"
+                        } ${isDimmed ? "opacity-30" : ""}`}
                       >
                         {seat.code}
                         <OccupiedSeatTooltip seat={seat} />
@@ -968,7 +1071,10 @@ export function FloorLayoutEditor({
                       <button
                         key={room.id}
                         type="button"
-                        onClick={() => selectRoom(room.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          selectRoom(room.id);
+                        }}
                         onPointerDown={(e) => startMove("room", room.id, e)}
                         style={{
                           left: `${displayPosition.x}%`,
@@ -1013,6 +1119,15 @@ export function FloorLayoutEditor({
           </section>
         </div>
       </div>
+
+      <FloorGroupHighlightPanel
+        open={illuminateOpen}
+        equipos={plantedSeatEquipos}
+        colorMap={groupColorMap}
+        selectedEquipos={highlightedEquipos}
+        onToggleEquipo={toggleHighlightedEquipo}
+        onClose={closeIlluminatePanel}
+      />
     </div>
   );
 }

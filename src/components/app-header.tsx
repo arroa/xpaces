@@ -27,9 +27,7 @@ export function AppHeader({ user }: AppHeaderProps) {
     isViewer(user.roles) && !isOrgAdmin(user.roles) && !isSuperAdmin(user.roles);
   const homeHref = isViewerOnly ? "/org/plantas" : "/dashboard";
 
-  const links: NavLink[] = isViewerOnly
-    ? [{ href: "/org/plantas", label: "Plantas" }]
-    : [{ href: "/dashboard", label: "Panel" }];
+  const links: NavLink[] = isViewerOnly ? [{ href: "/org/plantas", label: "Plantas" }] : [];
 
   const adminOrgId = pathname.match(/^\/admin\/organizations\/([^/]+)/)?.[1];
 
